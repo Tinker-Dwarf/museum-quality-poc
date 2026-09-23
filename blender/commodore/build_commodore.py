@@ -131,6 +131,8 @@ def build():
 
     barrel = cylinder("Barrel", (11.0, 0, BOIL_Z), BOIL_R, 28.0, shroud, verts=48)
     parent(barrel, root)
+    nose_fill = cylinder("SmokeBox", (26.4, 0, BOIL_Z), BOIL_R, 10.4, shroud, verts=48)
+    parent(nose_fill, root)
     bpy.ops.mesh.primitive_cone_add(
         radius1=BOIL_R, radius2=BOIL_R * 0.84, depth=10.0,
         location=(-8.0, 0, BOIL_Z), rotation=(0, math.pi / 2, 0), vertices=48,
@@ -146,10 +148,14 @@ def build():
     parent(face, root)
     crown = cylinder("Crown", (31.55, 0, 12.65), 0.55, 7.4, shroud, rot=(math.pi / 2, 0, 0), verts=24)
     parent(crown, root)
+    scoop_box = cube("StackHousing", (20.6, 0, BOIL_Z + BOIL_R + 0.15), (3.6, 2.6, 0.55), dark)
+    parent(scoop_box, root)
+    bell = cylinder("Bell", (16.4, 0, BOIL_Z + BOIL_R + 0.05), 0.55, 0.7, steel, rot=(0, 0, 0), verts=16)
+    parent(bell, root)
     for s in (-1, 1):
-        cheek = cube(f"Cheek_{s}", (26.8, s * 3.70, 8.0), (8.8, 0.45, 8.0), shroud)
-        bevel(cheek, 0.20, 2)
-        parent(cheek, root)
+        for zi, z in enumerate((6.4, 7.6, 10.6)):
+            riv = cube(f"BarrelRivet_{s}_{zi}", (12.0, s * (BOIL_R + 0.02), z), (22.0, 0.04, 0.06), dark)
+            parent(riv, root)
     bezel = cylinder("Bezel", (32.55, 0, 9.35), 0.95, 0.28, steel, verts=28)
     parent(bezel, root)
     lens = sphere("Lens", (32.72, 0, 9.35), 0.78, lamp, segs=24)
