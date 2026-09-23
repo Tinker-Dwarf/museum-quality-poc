@@ -1,6 +1,6 @@
 """
-Commodore Vanderbilt — J-1e Hudson #5344, Kantola 1934 shroud.
-Scale: 1 Blender unit = 1 foot.
+Commodore Vanderbilt — J-1e #5344 Kantola 1934.
+1 u = 1 ft. Face is a flat vertical prow (not a sphere).
 Run:
   blender --background --python build_commodore.py -- --out commodore.glb
 """
@@ -122,7 +122,6 @@ def build():
     TEN_R = 33.0 / 24.0
     BOIL_R = 91.5 / 24.0
     BOIL_Z = 9.15
-
     LEAD = (30.2, 24.8)
     DRIVE = (18.0, 11.0, 4.0)
     TRAIL = (-2.5, -8.3)
@@ -142,21 +141,43 @@ def build():
     tap.data.materials.append(shroud)
     parent(tap, root)
 
-    prow = sphere("Prow", (26.5, 0, BOIL_Z), BOIL_R, shroud, segs=64)
-    prow.scale = (2.05, 1.0, 1.04)
-    bpy.context.view_layer.objects.active = prow
-    prow.select_set(True)
+    face = cube("Face", (31.7, 0, 7.6), (1.6, 7.6, 11.2), shroud)
+    bevel(face, 0.55, 4)
+    parent(face, root)
+    crown = sphere("Crown", (31.2, 0, 13.0), 3.75, shroud, segs=40)
+    crown.scale = (0.55, 1.02, 0.42)
+    bpy.context.view_layer.objects.active = crown
+    crown.select_set(True)
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
-    prow.select_set(False)
-    parent(prow, root)
-
-    for z, rr in ((10.35, 0.52), (8.55, 0.58)):
-        bezel = cylinder("Bezel", (33.15, 0, z), rr + 0.10, 0.22, steel, verts=24)
-        parent(bezel, root)
-        lens = sphere("Lens", (33.28, 0, z), rr, lamp, segs=20)
-        parent(lens, root)
-    herald = cylinder("Herald", (32.55, 0, 11.85), 0.62, 0.14, cream, verts=24)
+    crown.select_set(False)
+    parent(crown, root)
+    for s in (-1, 1):
+        cheek = cube(f"Cheek_{s}", (28.4, s * 3.15, 8.4), (6.4, 1.5, 8.8), shroud)
+        bevel(cheek, 0.35, 3)
+        parent(cheek, root)
+    bezel = cylinder("Bezel", (32.55, 0, 9.35), 0.95, 0.28, steel, verts=28)
+    parent(bezel, root)
+    lens = sphere("Lens", (32.72, 0, 9.35), 0.78, lamp, segs=24)
+    parent(lens, root)
+    herald = cylinder("Herald", (32.52, 0, 6.55), 1.15, 0.16, cream, verts=28)
+    herald.scale = (1.0, 1.35, 0.72)
+    bpy.context.view_layer.objects.active = herald
+    herald.select_set(True)
+    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+    herald.select_set(False)
     parent(herald, root)
+    hring = cylinder("HeraldRing", (32.58, 0, 6.55), 1.28, 0.08, dark, verts=28)
+    hring.scale = (1.0, 1.35, 0.72)
+    bpy.context.view_layer.objects.active = hring
+    hring.select_set(True)
+    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+    hring.select_set(False)
+    parent(hring, root)
+    grill = cube("GrillPanel", (31.9, 0, 13.15), (0.8, 3.2, 1.5), dark)
+    parent(grill, root)
+    for i in range(6):
+        sl = cube(f"GrillSlat_{i}", (32.15, -1.25 + i * 0.50, 13.15), (0.18, 0.16, 1.35), steel)
+        parent(sl, root)
 
     well = cylinder("StackWell", (20.5, 0, BOIL_Z + BOIL_R - 0.05), 0.70, 0.35, dark, rot=(0, 0, 0), verts=24)
     parent(well, root)
@@ -189,33 +210,28 @@ def build():
         parent(cover, root)
         rail = cube(f"WalkRail_{s}", (8.0, s * 4.70, 9.15), (31.0, 0.08, 0.08), steel)
         parent(rail, root)
-        for i, z in enumerate((7.6, 6.4, 5.2, 4.0)):
-            st = cube(f"NoseStep_{s}_{i}", (24.2 + i * 0.22, s * 4.35, z), (1.05, 0.70, 0.16), shroud)
+        sw = cube(f"StairWell_{s}", (28.6, s * 3.55, 6.4), (4.8, 1.05, 6.6), dark)
+        parent(sw, root)
+        for i, z in enumerate((3.6, 4.8, 6.0, 7.2, 8.4)):
+            st = cube(f"NoseStep_{s}_{i}", (27.4 + i * 0.35, s * 3.55, z), (1.1, 0.85, 0.16), shroud)
             parent(st, root)
         cabst = cube(f"CabStep_{s}", (-8.2, s * 4.35, 8.15), (1.3, 0.70, 0.18), shroud)
         parent(cabst, root)
-        for z in (3.2, 4.6, 6.0, 7.4):
-            rn = cube(f"FrontLad_{s}_{z}", (25.2, s * 4.35, z), (0.12, 0.55, 0.10), steel)
-            parent(rn, root)
 
     frame = cube("Frame", (8.0, 0, 3.4), (36.0, 2.2, 0.7), iron)
     parent(frame, root)
-    pilot = cube("PilotBeam", (33.6, 0, 2.2), (1.4, 7.6, 0.8), iron)
+    shovel = cube("Shovel", (30.4, 0, 3.05), (6.8, 6.6, 4.6), shroud)
+    bevel(shovel, 0.45, 4)
+    parent(shovel, root)
+    point = cube("ShovelPoint", (32.6, 0, 2.15), (2.6, 5.2, 2.4), shroud)
+    bevel(point, 0.30, 3)
+    parent(point, root)
+    pilot = cube("PilotBeam", (33.4, 0, 1.35), (1.1, 6.4, 0.55), iron)
     parent(pilot, root)
-    fcoup = cube("FrontCoupler", (34.5, 0, 2.05), (0.8, 0.40, 0.40), steel)
+    fcoup = cube("FrontCoupler", (34.1, 0, 1.25), (0.7, 0.35, 0.35), steel)
     parent(fcoup, root)
-    chin = cube("Chin", (30.6, 0, 4.15), (8.4, 6.4, 3.4), shroud)
-    bevel(chin, 0.35, 3)
-    parent(chin, root)
-    apron = cube("PilotApron", (32.8, 0, 3.15), (3.2, 7.2, 1.6), shroud)
-    bevel(apron, 0.20, 2)
-    parent(apron, root)
 
-    axles = (
-        [(x, LEAD_R) for x in LEAD]
-        + [(x, DRIVE_R) for x in DRIVE]
-        + [(TRAIL[0], TRAIL_F), (TRAIL[1], TRAIL_R)]
-    )
+    axles = ([(x, LEAD_R) for x in LEAD] + [(x, DRIVE_R) for x in DRIVE] + [(TRAIL[0], TRAIL_F), (TRAIL[1], TRAIL_R)])
     for x, z in axles:
         axle = cylinder(f"Axle_{x}", (x, 0, z), 0.16, 9.2, steel, rot=(math.pi / 2, 0, 0), verts=12)
         parent(axle, root)
@@ -267,7 +283,6 @@ def build():
         parent(rail, root)
     grab = cube("RoofGrab", (-51.6, -2.4, 13.0), (1.1, 1.05, 0.10), steel)
     parent(grab, root)
-
     for s in (-1, 1):
         letter = cube(f"TenderPanel_{s}", (-34.0, s * 5.18, 8.7), (14.0, 0.06, 0.7), cream)
         stripe = cube(f"TenStripe_{s}", (-34.0, s * 5.18, 7.6), (28.0, 0.05, 0.16), cream)
@@ -288,7 +303,6 @@ def build():
             parent(bar, root)
         fst = cube(f"FrontStep_{s}", (-16.0, s * 5.25, 2.4), (0.8, 0.7, 0.16), steel)
         parent(fst, root)
-
     wscoop = cube("WaterScoop", (-34.0, 0, 1.15), (8.0, 1.4, 0.35), iron)
     parent(wscoop, root)
 
@@ -308,19 +322,16 @@ def build():
         for s in (-1, 1):
             for p in build_wheel(f"Ten_{x}_{s}", (x, s * 4.1, TEN_R), TEN_R, 0.36, iron, steel):
                 parent(p, root)
-
     for s in (-1, 1):
         rod = cube(f"Rod_{s}", (11.0, s * 4.85, 4.4), (14.2, 0.16, 0.22), steel)
         parent(rod, root)
         cylb = cube(f"Cyl_{s}", (22.5, s * 3.5, 5.6), (3.6, 1.35, 1.7), dark)
         bevel(cylb, 0.15, 2)
         parent(cylb, root)
-        cl = sphere(f"ClassLamp_{s}", (32.4, s * 2.55, 10.7), 0.26, lamp, segs=12)
+        cl = sphere(f"ClassLamp_{s}", (32.2, s * 3.15, 11.4), 0.18, lamp, segs=12)
         parent(cl, root)
-
     coupler = cube("Coupler", (-53.1, 0, 3.0), (0.8, 0.5, 0.5), steel)
     parent(coupler, root)
-
     bpy.ops.object.camera_add(location=(55, -78, 32), rotation=(1.15, 0, 0.62))
     bpy.context.scene.camera = bpy.context.active_object
     bpy.ops.object.light_add(type="SUN", location=(30, -20, 50))
@@ -339,16 +350,9 @@ def export_glb(path):
         sel(root)
         bpy.context.view_layer.objects.active = root
     bpy.ops.export_scene.gltf(
-        filepath=path,
-        export_format="GLB",
-        use_selection=True,
-        export_apply=True,
-        export_texcoords=True,
-        export_normals=True,
-        export_materials="EXPORT",
-        export_cameras=False,
-        export_lights=False,
-        export_yup=True,
+        filepath=path, export_format="GLB", use_selection=True, export_apply=True,
+        export_texcoords=True, export_normals=True, export_materials="EXPORT",
+        export_cameras=False, export_lights=False, export_yup=True,
     )
 
 
