@@ -1,12 +1,6 @@
 """
 Commodore Vanderbilt — J-1e Hudson #5344, Kantola 1934 shroud.
 Scale: 1 Blender unit = 1 foot.
-
-J-1e sheet:
-  length 97'2"   engine wb 40'4"   driver wb 14'0"   overall wb 83'7.5"
-  drivers 79"    lead 36"          trail 36"/51"     height 15'1"  width 10'6"
-
-K-5b Mercury plate is sister shroud language only — 4-6-2, not our wheel plan.
 Run:
   blender --background --python build_commodore.py -- --out commodore.glb
 """
@@ -129,7 +123,7 @@ def build():
     BOIL_R = 91.5 / 24.0
     BOIL_Z = 9.15
 
-    LEAD = (32.0, 26.5)
+    LEAD = (30.2, 24.8)
     DRIVE = (18.0, 11.0, 4.0)
     TRAIL = (-2.5, -8.3)
     TEN_FRONT = (-14.0, -18.4, -22.8)
@@ -156,12 +150,12 @@ def build():
     prow.select_set(False)
     parent(prow, root)
 
-    for z, rr in ((10.6, 0.55), (8.4, 0.62)):
-        bezel = cylinder("Bezel", (34.4, 0, z), rr + 0.12, 0.28, steel, verts=24)
+    for z, rr in ((10.35, 0.52), (8.55, 0.58)):
+        bezel = cylinder("Bezel", (33.15, 0, z), rr + 0.10, 0.22, steel, verts=24)
         parent(bezel, root)
-        lens = sphere("Lens", (34.6, 0, z), rr, lamp, segs=20)
+        lens = sphere("Lens", (33.28, 0, z), rr, lamp, segs=20)
         parent(lens, root)
-    herald = cylinder("Herald", (32.8, 0, 12.1), 0.70, 0.16, cream, verts=24)
+    herald = cylinder("Herald", (32.55, 0, 11.85), 0.62, 0.14, cream, verts=24)
     parent(herald, root)
 
     well = cylinder("StackWell", (20.5, 0, BOIL_Z + BOIL_R - 0.05), 0.70, 0.35, dark, rot=(0, 0, 0), verts=24)
@@ -189,27 +183,33 @@ def build():
         parent(num, root)
 
     for s in (-1, 1):
-        walk = cube(f"Walk_{s}", (8.0, s * 5.05, 8.55), (34.0, 1.05, 0.22), shroud)
+        walk = cube(f"Walk_{s}", (8.0, s * 4.35, 8.55), (32.0, 0.85, 0.22), shroud)
         parent(walk, root)
-        cover = cube(f"SideCover_{s}", (8.5, s * 5.00, 6.55), (32.0, 0.16, 2.4), shroud)
+        cover = cube(f"SideCover_{s}", (8.5, s * 4.28, 6.55), (30.0, 0.16, 2.4), shroud)
         parent(cover, root)
-        rail = cube(f"WalkRail_{s}", (8.0, s * 5.45, 9.15), (33.0, 0.08, 0.08), steel)
+        rail = cube(f"WalkRail_{s}", (8.0, s * 4.70, 9.15), (31.0, 0.08, 0.08), steel)
         parent(rail, root)
         for i, z in enumerate((7.6, 6.4, 5.2, 4.0)):
-            st = cube(f"NoseStep_{s}_{i}", (24.6 + i * 0.28, s * 5.05, z), (1.15, 0.85, 0.16), shroud)
+            st = cube(f"NoseStep_{s}_{i}", (24.2 + i * 0.22, s * 4.35, z), (1.05, 0.70, 0.16), shroud)
             parent(st, root)
-        cabst = cube(f"CabStep_{s}", (-8.2, s * 5.05, 8.15), (1.3, 0.85, 0.18), shroud)
+        cabst = cube(f"CabStep_{s}", (-8.2, s * 4.35, 8.15), (1.3, 0.70, 0.18), shroud)
         parent(cabst, root)
         for z in (3.2, 4.6, 6.0, 7.4):
-            rn = cube(f"FrontLad_{s}_{z}", (25.6, s * 5.05, z), (0.12, 0.7, 0.10), steel)
+            rn = cube(f"FrontLad_{s}_{z}", (25.2, s * 4.35, z), (0.12, 0.55, 0.10), steel)
             parent(rn, root)
 
     frame = cube("Frame", (8.0, 0, 3.4), (36.0, 2.2, 0.7), iron)
     parent(frame, root)
-    pilot = cube("PilotBeam", (34.8, 0, 2.4), (1.2, 8.4, 0.9), iron)
+    pilot = cube("PilotBeam", (33.6, 0, 2.2), (1.4, 7.6, 0.8), iron)
     parent(pilot, root)
-    fcoup = cube("FrontCoupler", (35.6, 0, 2.2), (0.9, 0.45, 0.45), steel)
+    fcoup = cube("FrontCoupler", (34.5, 0, 2.05), (0.8, 0.40, 0.40), steel)
     parent(fcoup, root)
+    chin = cube("Chin", (30.6, 0, 4.15), (8.4, 6.4, 3.4), shroud)
+    bevel(chin, 0.35, 3)
+    parent(chin, root)
+    apron = cube("PilotApron", (32.8, 0, 3.15), (3.2, 7.2, 1.6), shroud)
+    bevel(apron, 0.20, 2)
+    parent(apron, root)
 
     axles = (
         [(x, LEAD_R) for x in LEAD]
@@ -310,12 +310,12 @@ def build():
                 parent(p, root)
 
     for s in (-1, 1):
-        rod = cube(f"Rod_{s}", (11.0, s * 5.05, 4.4), (14.2, 0.16, 0.22), steel)
+        rod = cube(f"Rod_{s}", (11.0, s * 4.85, 4.4), (14.2, 0.16, 0.22), steel)
         parent(rod, root)
         cylb = cube(f"Cyl_{s}", (22.5, s * 3.5, 5.6), (3.6, 1.35, 1.7), dark)
         bevel(cylb, 0.15, 2)
         parent(cylb, root)
-        cl = sphere(f"ClassLamp_{s}", (33.4, s * 2.4, 11.4), 0.28, lamp, segs=12)
+        cl = sphere(f"ClassLamp_{s}", (32.4, s * 2.55, 10.7), 0.26, lamp, segs=12)
         parent(cl, root)
 
     coupler = cube("Coupler", (-53.1, 0, 3.0), (0.8, 0.5, 0.5), steel)
