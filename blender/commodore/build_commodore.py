@@ -1,6 +1,6 @@
 """
 Commodore Vanderbilt — patent silhouette pass (US 2,108,203).
-Walkway on the barrel, open drivers, longer 6-axle tender, cab roof overhang.
+Walkway on the barrel, open drivers, two triple tender trucks, radiused tail.
 Run:
   blender --background --python build_commodore.py -- --out commodore.glb
 """
@@ -181,7 +181,7 @@ def build():
     for x, z in ((3.55, 0.38), (2.75, 0.38), (1.55, 0.78), (0.15, 0.78), (-1.25, 0.78), (-2.55, 0.42), (-3.25, 0.42)):
         axle = cylinder(f"Axle_{x}", (x, 0, z), 0.045, 1.85, steel, rot=(math.pi / 2, 0, 0), verts=12)
         parent(axle, root)
-    ten_xs = (-5.95, -6.55, -7.15, -7.85, -8.45, -9.05)
+    ten_xs = (-5.85, -6.40, -6.95, -8.70, -9.25, -9.80)
     for x in ten_xs:
         axle = cylinder(f"TenAxle_{x}", (x, 0, 0.26), 0.035, 1.70, steel, rot=(math.pi / 2, 0, 0), verts=12)
         parent(axle, root)
@@ -210,9 +210,13 @@ def build():
         parent(letter, root)
         belt = cube(f"TenBelt_{s}", (-7.85, s * 1.09, 0.72), (4.8, 0.03, 0.06), dark)
         parent(belt, root)
-        for cx in (-6.55, -8.75):
-            sf = cube(f"TenFrame_{s}_{cx}", (cx, s * 0.92, 0.38), (1.55, 0.08, 0.20), iron)
+        for cx in (-6.40, -9.25):
+            sf = cube(f"TenFrame_{s}_{cx}", (cx, s * 0.92, 0.36), (1.70, 0.08, 0.20), iron)
             parent(sf, root)
+    rear_cap = cylinder("TenderRearCap", (-10.28, 0, 2.22), 0.38, 2.16, shroud, rot=(math.pi / 2, 0, 0), verts=24)
+    parent(rear_cap, root)
+    rear_top = cylinder("TenderRearTop", (-10.05, 0, 2.48), 0.28, 1.70, shroud, rot=(0, math.pi / 2, 0), verts=20)
+    parent(rear_top, root)
     for z in (0.85, 1.25, 1.65, 2.05):
         rung = cube(f"Ladder_{z}", (-10.45, 0, z), (0.04, 0.42, 0.04), steel)
         parent(rung, root)
