@@ -1,5 +1,6 @@
 """
-Commodore Vanderbilt streamliner — continuous shell, not a boiler-on-a-box.
+Commodore Vanderbilt — museum silhouette pass.
+Stretched prow + barrel + cab fairing + close tender + scalloped skirt.
 Run:
   blender --background --python build_commodore.py -- --out commodore.glb
 """
@@ -24,7 +25,7 @@ def clear_scene():
             coll.remove(block)
 
 
-def mat(name, color, metallic=0.35, roughness=0.38, emission=None):
+def mat(name, color, metallic=0.28, roughness=0.36, emission=None):
     m = bpy.data.materials.new(name)
     m.use_nodes = True
     bsdf = m.node_tree.nodes.get("Principled BSDF")
@@ -37,42 +38,50 @@ def mat(name, color, metallic=0.35, roughness=0.38, emission=None):
     return m
 
 
+def apply_ob(ob):
+    bpy.context.view_layer.objects.active = ob
+    ob.select_set(True)
+    bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
+    ob.select_set(False)
+    return ob
+
+
 def cube(name, loc, size, material, rot=(0, 0, 0)):
     bpy.ops.mesh.primitive_cube_add(location=loc, rotation=rot)
     ob = bpy.context.active_object
     ob.name = name
-    ob.scale = (size[0] / 2, size[1] / 2, size[2] / 2)
-    bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
+    ob.scale = (size[0] / 2.0, size[1] / 2.0, size[2] / 2.0)
+    apply_ob(ob)
     ob.data.materials.append(material)
     return ob
 
 
-def cyl(name, loc, r, depth, material, rot=(0, math.pi / 2, 0), verts=48):
+def cylinder(name, loc, r, depth, material, rot=(0, math.pi / 2, 0), verts=48):
     bpy.ops.mesh.primitive_cylinder_add(
         radius=r, depth=depth, location=loc, rotation=rot, vertices=verts
     )
     ob = bpy.context.active_object
     ob.name = name
-    bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
+    apply_ob(ob)
     ob.data.materials.append(material)
     return ob
 
 
-def sphere(name, loc, r, material, segs=32):
-    bpy.ops.mesh.primitive_uv_sphere_add(radius=r, location=loc, segments=segs, ring_count=segs)
+def sphere(name, loc, r, material, segs=40):
+    bpy.ops.mesh.primitive_uv_sphere_add(radius=r, location=loc, segments=segs, ring_count=max(16, segs // 2))
     ob = bpy.context.active_object
     ob.name = name
-    bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
+    apply_ob(ob)
     ob.data.materials.append(material)
     return ob
 
 
-def bevel(ob, width=0.12, segs=4):
+def bevel(ob, width=0.08, segs=3):
     m = ob.modifiers.new("Bevel", "BEVEL")
     m.width = width
     m.segments = segs
     m.limit_method = "ANGLE"
-    m.angle_limit = math.radians(30)
+    m.angle_limit = math.radians(25)
     bpy.context.view_layer.objects.active = ob
     bpy.ops.object.modifier_apply(modifier=m.name)
     return ob
@@ -83,112 +92,142 @@ def parent(child, root):
     child.matrix_parent_inverse = root.matrix_world.inverted()
 
 
+def build_wheel(tag, loc, r, width, iron, steel, spokes=12, counter=False):
+    g = bpy.data.objects.new(tag, None)
+    bpy.context.collection.objects.link(g)
+    g.location = loc
+    tire = cylinder(f"{tag}_tire", (0, 0, 0), r, width, iron, rot=(math.pi / 2, 0, 0), verts=32)
+    parent(tire, g)
+    rim = cylinder(f"{tag}_rim", (0, 0, 0), r * 0.82, width * 0.7, steel, rot=(math.pi / 2, 0, 0), verts=24)
+    parent(rim, g)
+    hub = cylinder(f"{tag}_hub", (0, 0, 0), r * 0.22, width * 1.2, steel, rot=(math.pi / 2, 0, 0), verts=16)
+    parent(hub, g)
+    for i in range(spokes):
+        a = i * (math.pi * 2 / spokes)
+        sp = cube(f"{tag}_sp{i}", (math.cos(a) * r * 0.42, 0, math.sin(a) * r * 0.42), (r * 0.72, width * 0.35, 0.045), steel, rot=(0, a, 0))
+        parent(sp, g)
+    return g
+
+
 def build():
     clear_scene()
 
-    shell = mat("NYCShell", (0.12, 0.145, 0.175), metallic=0.28, roughness=0.34)
-    shell_dark = mat("NYCShadow", (0.07, 0.08, 0.10), metallic=0.35, roughness=0.4)
-    silver = mat("Brightwork", (0.62, 0.64, 0.68), metallic=0.9, roughness=0.2)
-    iron = mat("Tire", (0.04, 0.04, 0.045), metallic=0.55, roughness=0.45)
-    glass = mat("CabGlass", (0.04, 0.07, 0.10), metallic=0.05, roughness=0.06)
-    lamp = mat("Lamp", (0.95, 0.92, 0.78), metallic=0.05, roughness=0.12, emission=((1.0, 0.95, 0.72), 8.0))
-    letter = mat("LetterPanel", (0.16, 0.18, 0.21), metallic=0.2, roughness=0.45)
+    shroud = mat("Shroud", (0.13, 0.155, 0.185), metallic=0.22, roughness=0.38)
+    dark = mat("Dark", (0.05, 0.055, 0.06), metallic=0.4, roughness=0.42)
+    iron = mat("Iron", (0.06, 0.06, 0.065), metallic=0.65, roughness=0.4)
+    steel = mat("Steel", (0.55, 0.57, 0.60), metallic=0.88, roughness=0.22)
+    glass = mat("Glass", (0.05, 0.08, 0.11), metallic=0.05, roughness=0.06)
+    lamp = mat("Lamp", (0.95, 0.93, 0.8), metallic=0.05, roughness=0.1, emission=((1.0, 0.96, 0.75), 10.0))
+    cream = mat("Herald", (0.82, 0.78, 0.68), metallic=0.15, roughness=0.4)
 
     root = bpy.data.objects.new("CommodoreVanderbilt", None)
     bpy.context.collection.objects.link(root)
 
-    W = 1.55
-    H = 2.15
-    Z0 = 0.52
-    Z1 = Z0 + H
-    nose_x = 6.35
-    cab_x = -3.55
+    R = 1.15
+    YB = 1.55
 
-    hull_len = nose_x - 0.9 - (cab_x - 1.15)
-    hull_cx = ((nose_x - 0.9) + (cab_x - 1.15)) / 2
-    hull = cube("Hull", (hull_cx, 0, (Z0 + Z1) / 2), (hull_len, W, H), shell)
-    bevel(hull, 0.18, 5)
-    parent(hull, root)
+    barrel = cylinder("Barrel", (0.2, 0, YB), R, 7.2, shroud, verts=48)
+    parent(barrel, root)
 
-    nose_box = cube("NoseBlock", (5.55, 0, 1.55), (1.7, W * 0.98, 2.05), shell)
-    bevel(nose_box, 0.22, 6)
-    parent(nose_box, root)
-    wedge = cube("NoseWedge", (6.15, 0, 0.72), (1.15, W * 0.92, 0.85), shell, rot=(0.38, 0, 0))
-    bevel(wedge, 0.10, 3)
-    parent(wedge, root)
-    snout = sphere("Snout", (6.45, 0, 1.55), 0.62, shell, segs=28)
-    snout.scale = (0.55, 1.05, 1.15)
-    bpy.context.view_layer.objects.active = snout
+    prow = sphere("Prow", (4.15, 0, YB), R, shroud, segs=40)
+    prow.scale = (1.85, 1.0, 1.02)
+    bpy.context.view_layer.objects.active = prow
+    prow.select_set(True)
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
-    parent(snout, root)
+    prow.select_set(False)
+    parent(prow, root)
 
-    for z in (1.78, 1.28):
-        bezel = cyl("Bezel", (6.72, 0, z), 0.16, 0.08, silver, verts=24)
+    chin = cube("Chin", (4.85, 0, 0.62), (1.9, 1.85, 0.95), shroud, rot=(0.42, 0, 0))
+    bevel(chin, 0.16, 4)
+    parent(chin, root)
+
+    for z, rr in ((1.95, 0.16), (1.42, 0.18)):
+        bezel = cylinder("Bezel", (5.95, 0, z), rr + 0.04, 0.07, steel, verts=24)
         parent(bezel, root)
-        lite = sphere("Lamp", (6.78, 0, z), 0.12, lamp, segs=16)
-        parent(lite, root)
+        lens = sphere("Lens", (6.00, 0, z), rr, lamp, segs=20)
+        parent(lens, root)
+    herald = cylinder("Herald", (5.55, 0, 2.28), 0.22, 0.05, cream, verts=24)
+    parent(herald, root)
 
-    stack_ring = cyl("StackRing", (3.15, 0, Z1 + 0.02), 0.22, 0.06, shell_dark, rot=(0, 0, 0), verts=24)
-    parent(stack_ring, root)
-    stack_void = cyl("StackVoid", (3.15, 0, Z1 - 0.04), 0.16, 0.10, shell_dark, rot=(0, 0, 0), verts=20)
-    parent(stack_void, root)
+    for i in range(4):
+        for s in (-1, 1):
+            lv = cube(f"Louver_{i}_{s}", (4.35 + i * 0.16, s * 0.95, 1.05), (0.04, 0.06, 0.42), dark)
+            parent(lv, root)
 
-    cab = cube("Cab", (cab_x, 0, Z1 + 0.12), (1.85, W * 1.02, 0.55), shell)
-    bevel(cab, 0.08, 3)
+    cab = cube("Cab", (-3.55, 0, 1.58), (2.35, 2.22, 2.35), shroud)
+    bevel(cab, 0.10, 3)
     parent(cab, root)
-    for y, name in ((W / 2 + 0.01, "GlassL"), (-W / 2 - 0.01, "GlassR")):
-        g = cube(name, (cab_x + 0.15, y, Z1 - 0.15), (0.55, 0.04, 0.38), glass)
-        parent(g, root)
-    g_rear = cube("GlassRear", (cab_x - 0.92, 0, Z1 - 0.15), (0.04, 0.70, 0.38), glass)
-    parent(g_rear, root)
+    roof = cylinder("CabRoof", (-3.55, 0, 1.72), 1.10, 2.22, shroud, verts=28)
+    parent(roof, root)
+    for s in (-1, 1):
+        frame = cube(f"WinFrame_{s}", (-3.95, s * 1.12, 2.05), (0.66, 0.05, 0.50), dark)
+        pane = cube(f"Win_{s}", (-3.95, s * 1.14, 2.05), (0.56, 0.04, 0.40), glass)
+        parent(frame, root)
+        parent(pane, root)
 
-    skirt = cube("Skirt", (1.1, 0, Z0 - 0.08), (9.4, W + 0.04, 0.38), shell)
-    bevel(skirt, 0.06, 2)
+    well = cylinder("StackWell", (2.15, 0, YB + R - 0.02), 0.20, 0.10, dark, rot=(0, 0, 0), verts=20)
+    parent(well, root)
+
+    for s in (-1, 1):
+        belt = cube(f"Belt_{s}", (0.1, s * 1.16, 2.08), (8.4, 0.035, 0.035), dark)
+        parent(belt, root)
+
+    skirt = cube("SkirtBody", (0.15, 0, 0.95), (8.6, 2.18, 0.85), shroud)
+    bevel(skirt, 0.05, 2)
     parent(skirt, root)
-    for x in (2.35, 1.25, 0.15):
-        for y in (W / 2 + 0.01, -W / 2 - 0.01):
-            cut = cube(f"WheelArch_{x}_{y}", (x, y, 0.55), (0.95, 0.05, 0.55), shell_dark)
-            parent(cut, root)
+    driver_xs = (1.55, 0.15, -1.25)
+    for x in driver_xs:
+        for s in (-1, 1):
+            bay = cube(f"Bay_{x}_{s}", (x, s * 1.12, 0.72), (1.15, 0.08, 0.95), dark)
+            parent(bay, root)
 
-    t_len = 4.55
-    t_cx = cab_x - 1.05 - t_len / 2
-    tender = cube("Tender", (t_cx, 0, (Z0 + Z1 + 0.15) / 2), (t_len, W, H + 0.15), shell)
+    frame = cube("Frame", (0.0, 0, 0.58), (8.0, 0.70, 0.28), iron)
+    parent(frame, root)
+
+    tender = cube("Tender", (-6.85, 0, 1.52), (4.15, 2.16, 2.40), shroud)
     bevel(tender, 0.10, 3)
     parent(tender, root)
-    hatch = cube("TenderHatch", (t_cx + 0.4, 0, Z1 + 0.22), (2.4, W * 0.72, 0.16), shell_dark)
+    t_roof = cube("TenderRoof", (-6.85, 0, 2.78), (4.15, 1.70, 0.22), shroud)
+    bevel(t_roof, 0.08, 2)
+    parent(t_roof, root)
+    hatch = cube("Hatch", (-6.35, 0, 2.92), (2.2, 1.35, 0.12), dark)
     parent(hatch, root)
-    letter_p = cube("TenderLetter", (t_cx - 0.4, W / 2 + 0.01, 1.55), (2.2, 0.03, 0.35), letter)
-    parent(letter_p, root)
-    coupler = cube("Coupler", (t_cx - t_len / 2 - 0.12, 0, 0.85), (0.22, 0.16, 0.16), silver)
+    for s in (-1, 1):
+        letter = cube(f"TenderPanel_{s}", (-7.05, s * 1.09, 1.62), (2.6, 0.03, 0.32), dark)
+        parent(letter, root)
+
+    lead_r, drive_r, trail_r, ten_r = 0.38, 0.78, 0.42, 0.32
+    for x in (3.55, 2.75):
+        for s in (-1, 1):
+            w = build_wheel(f"Lead_{x}_{s}", (x, s * 0.78, lead_r), lead_r, 0.12, iron, steel, spokes=10)
+            parent(w, root)
+    for x in driver_xs:
+        for s in (-1, 1):
+            w = build_wheel(f"Drive_{x}_{s}", (x, s * 0.98, drive_r), drive_r, 0.16, iron, steel, spokes=14, counter=True)
+            parent(w, root)
+    for x in (-2.55, -3.25):
+        for s in (-1, 1):
+            w = build_wheel(f"Trail_{x}_{s}", (x, s * 0.78, trail_r), trail_r, 0.12, iron, steel, spokes=10)
+            parent(w, root)
+    for x in (-5.55, -6.35, -7.35, -8.15):
+        for s in (-1, 1):
+            w = build_wheel(f"Ten_{x}_{s}", (x, s * 0.78, ten_r), ten_r, 0.12, iron, steel, spokes=8)
+            parent(w, root)
+
+    for s in (-1, 1):
+        rod = cube(f"Rod_{s}", (0.15, s * 1.08, 0.82), (2.85, 0.05, 0.07), steel)
+        parent(rod, root)
+        cylb = cube(f"Cyl_{s}", (2.55, s * 0.72, 1.05), (0.85, 0.36, 0.42), dark)
+        bevel(cylb, 0.04, 2)
+        parent(cylb, root)
+
+    coupler = cube("Coupler", (-9.05, 0, 0.82), (0.28, 0.16, 0.16), steel)
     parent(coupler, root)
 
-    def wheel_set(tag, x, y, r, width=0.14):
-        tire = cyl(f"{tag}_tire", (x, y, r), r, width, iron, rot=(math.pi / 2, 0, 0), verts=28)
-        hub = cyl(f"{tag}_hub", (x, y, r), r * 0.32, width * 1.1, silver, rot=(math.pi / 2, 0, 0), verts=16)
-        parent(tire, root)
-        parent(hub, root)
-
-    for x in (4.55, 3.85):
-        for y in (0.58, -0.58):
-            wheel_set(f"Lead_{x}", x, y, 0.28)
-    for x in (2.35, 1.25, 0.15):
-        for y in (0.62, -0.62):
-            wheel_set(f"Drive_{x}", x, y, 0.48, 0.16)
-    for x in (-1.05, -1.75):
-        for y in (0.58, -0.58):
-            wheel_set(f"Trail_{x}", x, y, 0.30)
-    for x in (t_cx + 1.35, t_cx + 0.35, t_cx - 0.65):
-        for y in (0.58, -0.58):
-            wheel_set(f"Ten_{x}", x, y, 0.26)
-
-    for y in (0.72, -0.72):
-        rod = cube(f"Rod_{y}", (1.25, y, 0.48), (2.3, 0.04, 0.05), silver)
-        parent(rod, root)
-
-    bpy.ops.object.camera_add(location=(11, -13, 5.5), rotation=(1.15, 0, 0.72))
+    bpy.ops.object.camera_add(location=(12, -14, 6), rotation=(1.15, 0, 0.7))
     bpy.context.scene.camera = bpy.context.active_object
-    bpy.ops.object.light_add(type="SUN", location=(8, -5, 12))
-    bpy.context.active_object.data.energy = 4
+    bpy.ops.object.light_add(type="SUN", location=(8, -6, 14))
+    bpy.context.active_object.data.energy = 4.5
     return root
 
 
@@ -196,11 +235,12 @@ def export_glb(path):
     bpy.ops.object.select_all(action="DESELECT")
     root = bpy.data.objects.get("CommodoreVanderbilt")
     if root:
-        root.select_set(True)
+        def sel(ob):
+            ob.select_set(True)
+            for ch in ob.children:
+                sel(ch)
+        sel(root)
         bpy.context.view_layer.objects.active = root
-        for ob in bpy.data.objects:
-            if ob.parent == root:
-                ob.select_set(True)
     bpy.ops.export_scene.gltf(
         filepath=path,
         export_format="GLB",
@@ -219,4 +259,4 @@ if __name__ == "__main__":
     build()
     out = argv_out()
     export_glb(out)
-    print(f"Exported {out}")
+    print("Exported", out)
