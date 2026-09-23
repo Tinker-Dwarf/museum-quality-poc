@@ -141,19 +141,14 @@ def build():
     tap.data.materials.append(shroud)
     parent(tap, root)
 
-    face = cube("Face", (31.55, 0, 7.35), (1.9, 7.5, 11.6), shroud)
-    bevel(face, 0.72, 5)
+    face = cube("Face", (31.55, 0, 7.15), (1.9, 7.5, 11.2), shroud)
+    bevel(face, 0.85, 5)
     parent(face, root)
-    crown = sphere("Crown", (31.45, 0, 12.55), 3.70, shroud, segs=40)
-    crown.scale = (0.38, 1.01, 0.36)
-    bpy.context.view_layer.objects.active = crown
-    crown.select_set(True)
-    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
-    crown.select_set(False)
+    crown = cylinder("Crown", (31.55, 0, 12.55), 0.95, 7.5, shroud, rot=(math.pi / 2, 0, 0), verts=28)
     parent(crown, root)
     for s in (-1, 1):
-        cheek = cube(f"Cheek_{s}", (28.4, s * 3.15, 8.4), (6.4, 1.5, 8.8), shroud)
-        bevel(cheek, 0.35, 3)
+        cheek = cube(f"Cheek_{s}", (28.8, s * 3.55, 8.2), (5.2, 0.55, 7.2), shroud)
+        bevel(cheek, 0.22, 2)
         parent(cheek, root)
     bezel = cylinder("Bezel", (32.55, 0, 9.35), 0.95, 0.28, steel, verts=28)
     parent(bezel, root)
@@ -198,18 +193,19 @@ def build():
         parent(num, root)
 
     for s in (-1, 1):
-        walk = cube(f"Walk_{s}", (8.0, s * 4.35, 8.55), (32.0, 0.85, 0.22), shroud)
+        walk = cube(f"Walk_{s}", (7.5, s * 4.20, 8.55), (29.0, 1.15, 0.20), shroud)
         parent(walk, root)
-        cover = cube(f"SideCover_{s}", (8.5, s * 4.28, 6.55), (30.0, 0.16, 2.4), shroud)
+        cover = cube(f"SideCover_{s}", (8.0, s * 4.72, 6.35), (28.0, 0.14, 4.2), shroud)
         parent(cover, root)
-        rail = cube(f"WalkRail_{s}", (8.0, s * 4.70, 9.15), (31.0, 0.08, 0.08), steel)
+        rail = cube(f"WalkRail_{s}", (7.5, s * 4.80, 9.05), (29.0, 0.08, 0.10), steel)
         parent(rail, root)
-        sw = cube(f"StairWell_{s}", (29.4, s * 3.72, 6.9), (3.2, 0.42, 5.2), dark)
-        parent(sw, root)
-        for i, z in enumerate((4.4, 5.5, 6.6, 7.7, 8.8)):
-            st = cube(f"NoseStep_{s}_{i}", (28.6 + i * 0.28, s * 3.72, z), (0.95, 0.55, 0.12), shroud)
+        for i in range(6):
+            t = i / 5.0
+            sx = 31.0 - t * 6.8
+            sz = 3.7 + t * 4.85
+            st = cube(f"NoseStep_{s}_{i}", (sx, s * 4.20, sz), (1.15, 1.05, 0.14), shroud)
             parent(st, root)
-        cabst = cube(f"CabStep_{s}", (-8.2, s * 4.35, 8.15), (1.3, 0.70, 0.18), shroud)
+        cabst = cube(f"CabStep_{s}", (-8.2, s * 4.20, 8.15), (1.3, 0.90, 0.16), shroud)
         parent(cabst, root)
 
     frame = cube("Frame", (8.0, 0, 3.4), (36.0, 2.2, 0.7), iron)
