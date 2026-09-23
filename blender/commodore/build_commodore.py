@@ -1,6 +1,6 @@
 """
-Commodore Vanderbilt — museum silhouette pass.
-Stretched prow + barrel + cab fairing + close tender + scalloped skirt.
+Commodore Vanderbilt — patent silhouette pass (US 2,108,203).
+Tapered barrel, walkway skirts, cab steps, vestibule curtain.
 Run:
   blender --background --python build_commodore.py -- --out commodore.glb
 """
@@ -97,27 +97,13 @@ def parent(child, root):
 def build_wheel(tag, loc, r, width, iron, steel, spokes=12, counter=False):
     x, y, z = loc
     tire = cylinder(f"{tag}_tire", (x, y, z), r, width, iron, rot=(math.pi / 2, 0, 0), verts=32)
-    rim = cylinder(f"{tag}_rim", (x, y, z), r * 0.78, width * 0.55, steel, rot=(math.pi / 2, 0, 0), verts=24)
-    hub = cylinder(f"{tag}_hub", (x, y, z), r * 0.20, width * 1.15, steel, rot=(math.pi / 2, 0, 0), verts=16)
-    parts = [tire, rim, hub]
-    for i in range(spokes):
-        a = i * (math.pi * 2 / spokes)
-        sx = x + math.cos(a) * r * 0.48
-        sz = z + math.sin(a) * r * 0.48
-        sp = cube(
-            f"{tag}_sp{i}",
-            (sx, y, sz),
-            (r * 0.78, width * 0.28, 0.04),
-            steel,
-            rot=(0, 0, a),
-        )
-        parts.append(sp)
-    return parts
+    rim = cylinder(f"{tag}_rim", (x, y, z), r * 0.72, width * 0.45, steel, rot=(math.pi / 2, 0, 0), verts=24)
+    hub = cylinder(f"{tag}_hub", (x, y, z), r * 0.22, width * 1.1, steel, rot=(math.pi / 2, 0, 0), verts=16)
+    return [tire, rim, hub]
 
 
 def build():
     clear_scene()
-
     shroud = mat("Shroud", (0.13, 0.155, 0.185), metallic=0.22, roughness=0.38)
     dark = mat("Dark", (0.05, 0.055, 0.06), metallic=0.4, roughness=0.42)
     iron = mat("Iron", (0.06, 0.06, 0.065), metallic=0.65, roughness=0.4)
@@ -132,8 +118,17 @@ def build():
     R = 1.15
     YB = 1.55
 
-    barrel = cylinder("Barrel", (0.2, 0, YB), R, 7.2, shroud, verts=48)
+    barrel = cylinder("Barrel", (0.55, 0, YB), R, 6.4, shroud, verts=48)
     parent(barrel, root)
+    bpy.ops.mesh.primitive_cone_add(
+        radius1=R, radius2=R * 0.86, depth=2.4, location=(-3.15, 0, YB),
+        rotation=(0, math.pi / 2, 0), vertices=48
+    )
+    tap = bpy.context.active_object
+    tap.name = "BarrelTaper"
+    apply_ob(tap)
+    tap.data.materials.append(shroud)
+    parent(tap, root)
 
     prow = sphere("Prow", (4.15, 0, YB), R, shroud, segs=64)
     prow.scale = (1.85, 1.0, 1.02)
@@ -151,11 +146,6 @@ def build():
     herald = cylinder("Herald", (5.55, 0, 2.28), 0.22, 0.05, cream, verts=24)
     parent(herald, root)
 
-    for i in range(4):
-        for s in (-1, 1):
-            lv = cube(f"Louver_{i}_{s}", (4.35 + i * 0.16, s * 0.95, 1.05), (0.04, 0.06, 0.42), dark)
-            parent(lv, root)
-
     cab = cube("Cab", (-3.55, 0, 1.58), (2.35, 2.22, 2.35), shroud)
     bevel(cab, 0.10, 3)
     parent(cab, root)
@@ -170,22 +160,24 @@ def build():
     well = cylinder("StackWell", (2.15, 0, YB + R - 0.02), 0.20, 0.10, dark, rot=(0, 0, 0), verts=20)
     parent(well, root)
 
-    for s in (-1, 1):
-        belt = cube(f"Belt_{s}", (0.1, s * 1.16, 2.08), (8.4, 0.035, 0.035), dark)
-        parent(belt, root)
-
-    skirt = cube("SkirtBody", (0.15, 0, 0.95), (8.6, 2.18, 0.85), shroud)
-    bevel(skirt, 0.05, 2)
-    parent(skirt, root)
     driver_xs = (1.55, 0.15, -1.25)
-    for x in driver_xs:
-        for s in (-1, 1):
-            bay = cube(f"Bay_{x}_{s}", (x, s * 1.12, 0.72), (1.15, 0.08, 0.95), dark)
+    for s in (-1, 1):
+        walk = cube(f"Walk_{s}", (0.35, s * 1.18, 1.42), (8.2, 0.28, 0.06), shroud)
+        parent(walk, root)
+        valance = cube(f"Valance_{s}", (0.55, s * 1.14, 0.95), (7.6, 0.08, 0.88), shroud)
+        parent(valance, root)
+        for x in driver_xs:
+            bay = cube(f"Bay_{x}_{s}", (x, s * 1.16, 0.62), (1.05, 0.06, 0.72), dark)
             parent(bay, root)
+        for i, z in enumerate((1.15, 0.88, 0.62)):
+            st = cube(f"Step_{s}_{i}", (-3.05 - i * 0.08, s * 1.20, z), (0.28, 0.22, 0.05), shroud)
+            parent(st, root)
 
     frame = cube("Frame", (0.0, 0, 0.58), (8.0, 0.70, 0.28), iron)
     parent(frame, root)
 
+    curtain = cube("Vestibule", (-4.72, 0, 1.55), (0.18, 2.00, 2.20), dark)
+    parent(curtain, root)
     tender = cube("Tender", (-6.85, 0, 1.52), (4.15, 2.16, 2.40), shroud)
     bevel(tender, 0.10, 3)
     parent(tender, root)
@@ -194,34 +186,28 @@ def build():
     parent(t_roof, root)
     hatch = cube("Hatch", (-6.35, 0, 2.92), (2.2, 1.35, 0.12), dark)
     parent(hatch, root)
-    for s in (-1, 1):
-        letter = cube(f"TenderPanel_{s}", (-7.05, s * 1.09, 1.62), (2.6, 0.03, 0.32), dark)
-        parent(letter, root)
 
     lead_r, drive_r, trail_r, ten_r = 0.38, 0.78, 0.42, 0.32
     for x in (3.55, 2.75):
         for s in (-1, 1):
-            for p in build_wheel(f"Lead_{x}_{s}", (x, s * 0.78, lead_r), lead_r, 0.12, iron, steel, spokes=10):
+            for p in build_wheel(f"Lead_{x}_{s}", (x, s * 0.78, lead_r), lead_r, 0.12, iron, steel):
                 parent(p, root)
     for x in driver_xs:
         for s in (-1, 1):
-            for p in build_wheel(f"Drive_{x}_{s}", (x, s * 0.98, drive_r), drive_r, 0.16, iron, steel, spokes=14):
+            for p in build_wheel(f"Drive_{x}_{s}", (x, s * 0.98, drive_r), drive_r, 0.16, iron, steel):
                 parent(p, root)
     for x in (-2.55, -3.25):
         for s in (-1, 1):
-            for p in build_wheel(f"Trail_{x}_{s}", (x, s * 0.78, trail_r), trail_r, 0.12, iron, steel, spokes=10):
+            for p in build_wheel(f"Trail_{x}_{s}", (x, s * 0.78, trail_r), trail_r, 0.12, iron, steel):
                 parent(p, root)
     for x in (-5.55, -6.35, -7.35, -8.15):
         for s in (-1, 1):
-            for p in build_wheel(f"Ten_{x}_{s}", (x, s * 0.78, ten_r), ten_r, 0.12, iron, steel, spokes=8):
+            for p in build_wheel(f"Ten_{x}_{s}", (x, s * 0.78, ten_r), ten_r, 0.12, iron, steel):
                 parent(p, root)
 
     for s in (-1, 1):
         rod = cube(f"Rod_{s}", (0.15, s * 1.08, 0.82), (2.85, 0.05, 0.07), steel)
         parent(rod, root)
-        cylb = cube(f"Cyl_{s}", (2.55, s * 0.72, 1.05), (0.85, 0.36, 0.42), dark)
-        bevel(cylb, 0.04, 2)
-        parent(cylb, root)
 
     coupler = cube("Coupler", (-9.05, 0, 0.82), (0.28, 0.16, 0.16), steel)
     parent(coupler, root)
