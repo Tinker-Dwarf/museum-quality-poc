@@ -1,6 +1,6 @@
 """
 Commodore Vanderbilt — patent silhouette pass (US 2,108,203).
-Walkway on the barrel, open drivers, two triple tender trucks, radiused tail.
+Walkway on the barrel, open drivers, two triple tender trucks, soft rear.
 Run:
   blender --background --python build_commodore.py -- --out commodore.glb
 """
@@ -213,16 +213,22 @@ def build():
         for cx in (-6.40, -9.25):
             sf = cube(f"TenFrame_{s}_{cx}", (cx, s * 0.92, 0.36), (1.70, 0.08, 0.20), iron)
             parent(sf, root)
-    rear_cap = cylinder("TenderRearCap", (-10.28, 0, 2.22), 0.38, 2.16, shroud, rot=(math.pi / 2, 0, 0), verts=24)
-    parent(rear_cap, root)
-    rear_top = cylinder("TenderRearTop", (-10.05, 0, 2.48), 0.28, 1.70, shroud, rot=(0, math.pi / 2, 0), verts=20)
-    parent(rear_top, root)
-    for z in (0.85, 1.25, 1.65, 2.05):
-        rung = cube(f"Ladder_{z}", (-10.45, 0, z), (0.04, 0.42, 0.04), steel)
-        parent(rung, root)
+    rear_slope = cube("TenderRearSlope", (-10.22, 0, 2.42), (0.50, 1.65, 0.22), shroud)
+    bevel(rear_slope, 0.10, 3)
+    parent(rear_slope, root)
     for s in (-1, 1):
-        rail = cube(f"LadderRail_{s}", (-10.45, s * 0.22, 1.45), (0.04, 0.04, 1.35), steel)
+        fillet = cylinder(f"RearFillet_{s}", (-10.30, s * 0.82, 2.32), 0.18, 0.42, shroud, verts=16)
+        parent(fillet, root)
+    buffer = cube("BufferBeam", (-10.42, 0, 0.78), (0.18, 1.55, 0.28), iron)
+    parent(buffer, root)
+    for z in (0.95, 1.35, 1.75, 2.15):
+        rung = cube(f"Ladder_{z}", (-10.45, -0.55, z), (0.04, 0.28, 0.035), steel)
+        parent(rung, root)
+    for yy in (-0.68, -0.42):
+        rail = cube(f"LadderRail_{yy}", (-10.45, yy, 1.55), (0.035, 0.035, 1.40), steel)
         parent(rail, root)
+    grab = cube("RoofGrab", (-10.28, -0.55, 2.38), (0.22, 0.28, 0.035), steel)
+    parent(grab, root)
 
     lead_r, drive_r, trail_r, ten_r = 0.38, 0.78, 0.42, 0.26
     for x in (3.55, 2.75):
@@ -249,7 +255,7 @@ def build():
         bevel(cylb, 0.04, 2)
         parent(cylb, root)
 
-    coupler = cube("Coupler", (-10.50, 0, 0.82), (0.28, 0.16, 0.16), steel)
+    coupler = cube("Coupler", (-10.55, 0, 0.72), (0.22, 0.16, 0.16), steel)
     parent(coupler, root)
 
     bpy.ops.object.camera_add(location=(12, -14, 6), rotation=(1.15, 0, 0.7))
