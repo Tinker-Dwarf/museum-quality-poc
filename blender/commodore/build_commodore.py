@@ -1,6 +1,9 @@
 """
-Commodore Vanderbilt — patent silhouette pass (US 2,108,203).
-Kantola tender: covered coal, gangway curtain, car-style rear.
+Commodore Vanderbilt — J-1e Hudson #5344 (Kantola 1934 shroud).
+Compact display scale (~1 u ≈ 2.2 ft). Ratios locked to J-1e:
+length 97'2", engine wb 40'4", driver wb 14'0", overall wb 83'7.5",
+drivers 79", lead 36", trail 36"/51", height 15'1", width 10'6".
+K-5b Mercury diagram is sister shroud language, not our wheel plan.
 Run:
   blender --background --python build_commodore.py -- --out commodore.glb
 """
@@ -167,7 +170,7 @@ def build():
     for s in (-1, 1):
         walk = cube(f"Walk_{s}", (0.15, s * 1.22, 1.58), (7.6, 0.32, 0.07), shroud)
         parent(walk, root)
-        cover = cube(f"SideCover_{s}", (0.35, s * 1.20, 1.28), (7.2, 0.045, 0.42), shroud)
+        cover = cube(f"SideCover_{s}", (0.35, s * 1.20, 1.18), (7.2, 0.05, 0.62), shroud)
         parent(cover, root)
         for i, z in enumerate((1.42, 1.12, 0.82, 0.55)):
             st = cube(f"NoseStep_{s}_{i}", (3.85 + i * 0.07, s * 1.22, z), (0.32, 0.24, 0.05), shroud)
@@ -178,7 +181,7 @@ def build():
     frame = cube("Frame", (0.0, 0, 0.58), (8.0, 0.55, 0.22), iron)
     parent(frame, root)
 
-    for x, z in ((3.55, 0.38), (2.75, 0.38), (1.55, 0.78), (0.15, 0.78), (-1.25, 0.78), (-2.55, 0.42), (-3.25, 0.42)):
+    for x, z in ((3.55, 0.36), (2.75, 0.36), (1.55, 0.78), (0.15, 0.78), (-1.25, 0.78), (-2.55, 0.36), (-3.25, 0.50)):
         axle = cylinder(f"Axle_{x}", (x, 0, z), 0.045, 1.85, steel, rot=(math.pi / 2, 0, 0), verts=12)
         parent(axle, root)
     ten_xs = (-5.85, -6.40, -6.95, -8.70, -9.25, -9.80)
@@ -231,8 +234,10 @@ def build():
     grab = cube("RoofGrab", (-10.22, -0.58, 2.36), (0.28, 0.26, 0.03), steel)
     parent(grab, root)
     for s in (-1, 1):
-        letter = cube(f"TenderPanel_{s}", (-7.85, s * 1.09, 1.62), (2.6, 0.025, 0.22), cream)
+        letter = cube(f"TenderPanel_{s}", (-7.85, s * 1.09, 1.58), (2.4, 0.02, 0.14), cream)
+        stripe = cube(f"TenStripe_{s}", (-7.85, s * 1.09, 1.38), (4.6, 0.018, 0.04), cream)
         parent(letter, root)
+        parent(stripe, root)
         for zi, z in enumerate((0.55, 0.95, 2.15)):
             riv = cube(f"Rivet_{s}_{zi}", (-7.85, s * 1.09, z), (4.7, 0.02, 0.025), dark)
             parent(riv, root)
@@ -249,7 +254,7 @@ def build():
         fst = cube(f"FrontStep_{s}", (-5.38, s * 1.12, 0.55), (0.22, 0.18, 0.05), steel)
         parent(fst, root)
 
-    lead_r, drive_r, trail_r, ten_r = 0.38, 0.78, 0.42, 0.26
+    lead_r, drive_r, trail_front, trail_rear, ten_r = 0.36, 0.78, 0.36, 0.50, 0.26
     for x in (3.55, 2.75):
         for s in (-1, 1):
             for p in build_wheel(f"Lead_{x}_{s}", (x, s * 0.78, lead_r), lead_r, 0.12, iron, steel):
@@ -258,9 +263,9 @@ def build():
         for s in (-1, 1):
             for p in build_wheel(f"Drive_{x}_{s}", (x, s * 0.98, drive_r), drive_r, 0.16, iron, steel):
                 parent(p, root)
-    for x in (-2.55, -3.25):
+    for x, tr in ((-2.55, trail_front), (-3.25, trail_rear)):
         for s in (-1, 1):
-            for p in build_wheel(f"Trail_{x}_{s}", (x, s * 0.78, trail_r), trail_r, 0.12, iron, steel):
+            for p in build_wheel(f"Trail_{x}_{s}", (x, s * 0.78, tr), tr, 0.12, iron, steel):
                 parent(p, root)
     for x in ten_xs:
         for s in (-1, 1):
