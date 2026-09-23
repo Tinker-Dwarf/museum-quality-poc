@@ -88,25 +88,31 @@ def bevel(ob, width=0.08, segs=3):
 
 
 def parent(child, root):
+    mw = child.matrix_world.copy()
     child.parent = root
     child.matrix_parent_inverse = root.matrix_world.inverted()
+    child.matrix_world = mw
 
 
 def build_wheel(tag, loc, r, width, iron, steel, spokes=12, counter=False):
-    g = bpy.data.objects.new(tag, None)
-    bpy.context.collection.objects.link(g)
-    g.location = loc
-    tire = cylinder(f"{tag}_tire", (0, 0, 0), r, width, iron, rot=(math.pi / 2, 0, 0), verts=32)
-    parent(tire, g)
-    rim = cylinder(f"{tag}_rim", (0, 0, 0), r * 0.82, width * 0.7, steel, rot=(math.pi / 2, 0, 0), verts=24)
-    parent(rim, g)
-    hub = cylinder(f"{tag}_hub", (0, 0, 0), r * 0.22, width * 1.2, steel, rot=(math.pi / 2, 0, 0), verts=16)
-    parent(hub, g)
+    x, y, z = loc
+    tire = cylinder(f"{tag}_tire", (x, y, z), r, width, iron, rot=(math.pi / 2, 0, 0), verts=32)
+    rim = cylinder(f"{tag}_rim", (x, y, z), r * 0.78, width * 0.55, steel, rot=(math.pi / 2, 0, 0), verts=24)
+    hub = cylinder(f"{tag}_hub", (x, y, z), r * 0.20, width * 1.15, steel, rot=(math.pi / 2, 0, 0), verts=16)
+    parts = [tire, rim, hub]
     for i in range(spokes):
         a = i * (math.pi * 2 / spokes)
-        sp = cube(f"{tag}_sp{i}", (math.cos(a) * r * 0.42, 0, math.sin(a) * r * 0.42), (r * 0.72, width * 0.35, 0.045), steel, rot=(0, a, 0))
-        parent(sp, g)
-    return g
+        sx = x + math.cos(a) * r * 0.48
+        sz = z + math.sin(a) * r * 0.48
+        sp = cube(
+            f"{tag}_sp{i}",
+            (sx, y, sz),
+            (r * 0.78, width * 0.28, 0.04),
+            steel,
+            rot=(0, 0, a),
+        )
+        parts.append(sp)
+    return parts
 
 
 def build():
@@ -129,17 +135,13 @@ def build():
     barrel = cylinder("Barrel", (0.2, 0, YB), R, 7.2, shroud, verts=48)
     parent(barrel, root)
 
-    prow = sphere("Prow", (4.15, 0, YB), R, shroud, segs=40)
+    prow = sphere("Prow", (4.15, 0, YB), R, shroud, segs=64)
     prow.scale = (1.85, 1.0, 1.02)
     bpy.context.view_layer.objects.active = prow
     prow.select_set(True)
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
     prow.select_set(False)
     parent(prow, root)
-
-    chin = cube("Chin", (4.85, 0, 0.62), (1.9, 1.85, 0.95), shroud, rot=(0.42, 0, 0))
-    bevel(chin, 0.16, 4)
-    parent(chin, root)
 
     for z, rr in ((1.95, 0.16), (1.42, 0.18)):
         bezel = cylinder("Bezel", (5.95, 0, z), rr + 0.04, 0.07, steel, verts=24)
@@ -199,20 +201,20 @@ def build():
     lead_r, drive_r, trail_r, ten_r = 0.38, 0.78, 0.42, 0.32
     for x in (3.55, 2.75):
         for s in (-1, 1):
-            w = build_wheel(f"Lead_{x}_{s}", (x, s * 0.78, lead_r), lead_r, 0.12, iron, steel, spokes=10)
-            parent(w, root)
+            for p in build_wheel(f"Lead_{x}_{s}", (x, s * 0.78, lead_r), lead_r, 0.12, iron, steel, spokes=10):
+                parent(p, root)
     for x in driver_xs:
         for s in (-1, 1):
-            w = build_wheel(f"Drive_{x}_{s}", (x, s * 0.98, drive_r), drive_r, 0.16, iron, steel, spokes=14, counter=True)
-            parent(w, root)
+            for p in build_wheel(f"Drive_{x}_{s}", (x, s * 0.98, drive_r), drive_r, 0.16, iron, steel, spokes=14):
+                parent(p, root)
     for x in (-2.55, -3.25):
         for s in (-1, 1):
-            w = build_wheel(f"Trail_{x}_{s}", (x, s * 0.78, trail_r), trail_r, 0.12, iron, steel, spokes=10)
-            parent(w, root)
+            for p in build_wheel(f"Trail_{x}_{s}", (x, s * 0.78, trail_r), trail_r, 0.12, iron, steel, spokes=10):
+                parent(p, root)
     for x in (-5.55, -6.35, -7.35, -8.15):
         for s in (-1, 1):
-            w = build_wheel(f"Ten_{x}_{s}", (x, s * 0.78, ten_r), ten_r, 0.12, iron, steel, spokes=8)
-            parent(w, root)
+            for p in build_wheel(f"Ten_{x}_{s}", (x, s * 0.78, ten_r), ten_r, 0.12, iron, steel, spokes=8):
+                parent(p, root)
 
     for s in (-1, 1):
         rod = cube(f"Rod_{s}", (0.15, s * 1.08, 0.82), (2.85, 0.05, 0.07), steel)
