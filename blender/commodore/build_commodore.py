@@ -1,6 +1,6 @@
 """
 Commodore Vanderbilt — patent silhouette pass (US 2,108,203).
-Walkway on the barrel, thin side cover, open drivers with axles, coal-box tender.
+Walkway on the barrel, open drivers, longer 6-axle tender, cab roof overhang.
 Run:
   blender --background --python build_commodore.py -- --out commodore.glb
 """
@@ -151,6 +151,9 @@ def build():
     parent(cab, root)
     roof = cylinder("CabRoof", (-3.55, 0, 1.72), 1.10, 2.22, shroud, verts=28)
     parent(roof, root)
+    overhang = cube("CabOverhang", (-4.95, 0, 2.62), (1.15, 2.10, 0.16), shroud)
+    bevel(overhang, 0.04, 2)
+    parent(overhang, root)
     for s in (-1, 1):
         frame = cube(f"WinFrame_{s}", (-3.95, s * 1.12, 2.05), (0.66, 0.05, 0.50), dark)
         pane = cube(f"Win_{s}", (-3.95, s * 1.14, 2.05), (0.56, 0.04, 0.40), glass)
@@ -178,45 +181,46 @@ def build():
     for x, z in ((3.55, 0.38), (2.75, 0.38), (1.55, 0.78), (0.15, 0.78), (-1.25, 0.78), (-2.55, 0.42), (-3.25, 0.42)):
         axle = cylinder(f"Axle_{x}", (x, 0, z), 0.045, 1.85, steel, rot=(math.pi / 2, 0, 0), verts=12)
         parent(axle, root)
-    for x in (-5.55, -6.35, -7.35, -8.15):
-        axle = cylinder(f"TenAxle_{x}", (x, 0, 0.32), 0.04, 1.70, steel, rot=(math.pi / 2, 0, 0), verts=12)
+    ten_xs = (-5.95, -6.55, -7.15, -7.85, -8.45, -9.05)
+    for x in ten_xs:
+        axle = cylinder(f"TenAxle_{x}", (x, 0, 0.26), 0.035, 1.70, steel, rot=(math.pi / 2, 0, 0), verts=12)
         parent(axle, root)
 
-    curtain = cube("Vestibule", (-4.72, 0, 1.55), (0.18, 2.00, 2.20), dark)
+    curtain = cube("Vestibule", (-5.15, 0, 1.45), (0.16, 1.85, 1.85), dark)
     parent(curtain, root)
-    tender = cube("Tender", (-6.95, 0, 1.38), (4.35, 2.16, 2.12), shroud)
+    tender = cube("Tender", (-7.85, 0, 1.38), (5.10, 2.16, 2.12), shroud)
     bevel(tender, 0.10, 3)
     parent(tender, root)
     for s in (-1, 1):
-        shoulder = cylinder(f"TenShoulder_{s}", (-6.95, s * 0.78, 2.38), 0.30, 4.35, shroud, verts=16)
+        shoulder = cylinder(f"TenShoulder_{s}", (-7.85, s * 0.78, 2.38), 0.30, 5.10, shroud, verts=16)
         parent(shoulder, root)
-    deck = cube("TenderDeck", (-6.95, 0, 2.52), (4.35, 1.58, 0.16), shroud)
+    deck = cube("TenderDeck", (-7.85, 0, 2.52), (5.10, 1.58, 0.16), shroud)
     parent(deck, root)
-    bunker = cube("Bunker", (-6.15, 0, 2.58), (2.35, 1.28, 0.22), dark)
+    bunker = cube("Bunker", (-6.85, 0, 2.58), (2.55, 1.28, 0.22), dark)
     parent(bunker, root)
-    coal = cube("Coal", (-6.15, 0, 2.48), (2.15, 1.10, 0.28), dark)
+    coal = cube("Coal", (-6.85, 0, 2.48), (2.35, 1.10, 0.28), dark)
     bevel(coal, 0.06, 2)
     parent(coal, root)
-    hatch = cube("WaterHatch", (-8.35, 0, 2.62), (0.85, 0.70, 0.10), dark)
+    hatch = cube("WaterHatch", (-9.45, 0, 2.62), (0.85, 0.70, 0.10), dark)
     parent(hatch, root)
-    fill = cylinder("FillCap", (-8.35, 0, 2.70), 0.16, 0.08, steel, rot=(0, 0, 0), verts=16)
+    fill = cylinder("FillCap", (-9.45, 0, 2.70), 0.16, 0.08, steel, rot=(0, 0, 0), verts=16)
     parent(fill, root)
     for s in (-1, 1):
-        letter = cube(f"TenderPanel_{s}", (-7.15, s * 1.09, 1.55), (2.8, 0.03, 0.28), dark)
+        letter = cube(f"TenderPanel_{s}", (-7.95, s * 1.09, 1.55), (3.2, 0.03, 0.28), dark)
         parent(letter, root)
-        belt = cube(f"TenBelt_{s}", (-6.95, s * 1.09, 0.72), (4.1, 0.03, 0.06), dark)
+        belt = cube(f"TenBelt_{s}", (-7.85, s * 1.09, 0.72), (4.8, 0.03, 0.06), dark)
         parent(belt, root)
-        for cx in (-6.05, -7.85):
-            sf = cube(f"TenFrame_{s}_{cx}", (cx, s * 0.92, 0.42), (1.35, 0.08, 0.22), iron)
+        for cx in (-6.55, -8.75):
+            sf = cube(f"TenFrame_{s}_{cx}", (cx, s * 0.92, 0.38), (1.55, 0.08, 0.20), iron)
             parent(sf, root)
     for z in (0.85, 1.25, 1.65, 2.05):
-        rung = cube(f"Ladder_{z}", (-9.12, 0, z), (0.04, 0.42, 0.04), steel)
+        rung = cube(f"Ladder_{z}", (-10.45, 0, z), (0.04, 0.42, 0.04), steel)
         parent(rung, root)
     for s in (-1, 1):
-        rail = cube(f"LadderRail_{s}", (-9.12, s * 0.22, 1.45), (0.04, 0.04, 1.35), steel)
+        rail = cube(f"LadderRail_{s}", (-10.45, s * 0.22, 1.45), (0.04, 0.04, 1.35), steel)
         parent(rail, root)
 
-    lead_r, drive_r, trail_r, ten_r = 0.38, 0.78, 0.42, 0.32
+    lead_r, drive_r, trail_r, ten_r = 0.38, 0.78, 0.42, 0.26
     for x in (3.55, 2.75):
         for s in (-1, 1):
             for p in build_wheel(f"Lead_{x}_{s}", (x, s * 0.78, lead_r), lead_r, 0.12, iron, steel):
@@ -229,9 +233,9 @@ def build():
         for s in (-1, 1):
             for p in build_wheel(f"Trail_{x}_{s}", (x, s * 0.78, trail_r), trail_r, 0.12, iron, steel):
                 parent(p, root)
-    for x in (-5.55, -6.35, -7.35, -8.15):
+    for x in ten_xs:
         for s in (-1, 1):
-            for p in build_wheel(f"Ten_{x}_{s}", (x, s * 0.78, ten_r), ten_r, 0.12, iron, steel):
+            for p in build_wheel(f"Ten_{x}_{s}", (x, s * 0.78, ten_r), ten_r, 0.10, iron, steel):
                 parent(p, root)
 
     for s in (-1, 1):
@@ -241,7 +245,7 @@ def build():
         bevel(cylb, 0.04, 2)
         parent(cylb, root)
 
-    coupler = cube("Coupler", (-9.05, 0, 0.82), (0.28, 0.16, 0.16), steel)
+    coupler = cube("Coupler", (-10.50, 0, 0.82), (0.28, 0.16, 0.16), steel)
     parent(coupler, root)
 
     bpy.ops.object.camera_add(location=(12, -14, 6), rotation=(1.15, 0, 0.7))
