@@ -162,16 +162,22 @@ def build():
 
     driver_xs = (1.55, 0.15, -1.25)
     for s in (-1, 1):
-        walk = cube(f"Walk_{s}", (0.35, s * 1.18, 1.42), (8.2, 0.28, 0.06), shroud)
+        walk = cube(f"Walk_{s}", (0.15, s * 1.22, 1.58), (7.6, 0.32, 0.07), shroud)
         parent(walk, root)
-        valance = cube(f"Valance_{s}", (0.55, s * 1.14, 0.95), (7.6, 0.08, 0.88), shroud)
-        parent(valance, root)
+        val_f = cube(f"ValFront_{s}", (2.05, s * 1.18, 1.12), (3.6, 0.07, 0.72), shroud)
+        parent(val_f, root)
+        val_m = cube(f"ValMid_{s}", (-0.35, s * 1.18, 1.22), (2.4, 0.07, 0.55), shroud)
+        parent(val_m, root)
+        val_a = cube(f"ValAft_{s}", (-2.15, s * 1.18, 1.38), (1.5, 0.07, 0.32), shroud)
+        parent(val_a, root)
         for x in driver_xs:
-            bay = cube(f"Bay_{x}_{s}", (x, s * 1.16, 0.62), (1.05, 0.06, 0.72), dark)
+            bay = cube(f"Bay_{x}_{s}", (x, s * 1.20, 0.78), (0.95, 0.05, 0.55), dark)
             parent(bay, root)
-        for i, z in enumerate((1.15, 0.88, 0.62)):
-            st = cube(f"Step_{s}_{i}", (-3.05 - i * 0.08, s * 1.20, z), (0.28, 0.22, 0.05), shroud)
+        for i, z in enumerate((1.42, 1.12, 0.82, 0.55)):
+            st = cube(f"NoseStep_{s}_{i}", (3.85 + i * 0.07, s * 1.22, z), (0.32, 0.24, 0.05), shroud)
             parent(st, root)
+        cabst = cube(f"CabStep_{s}", (-3.15, s * 1.22, 1.48), (0.35, 0.24, 0.06), shroud)
+        parent(cabst, root)
 
     frame = cube("Frame", (0.0, 0, 0.58), (8.0, 0.70, 0.28), iron)
     parent(frame, root)
