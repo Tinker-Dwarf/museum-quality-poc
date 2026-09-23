@@ -82,53 +82,59 @@ export function buildVanderbilt(): LocoBuilt {
   // —— Streamlined side skirt with the signature curved lower edge ——
   // Flat side valance whose bottom sweeps up over the exposed drivers.
   const yBelt = 2.04;
+  // Deep scalloped cutouts over the three drivers (raise bay edge so wheels pop like the still)
+  const yBay = 1.85;
   const skirtShape = new THREE.Shape();
   skirtShape.moveTo(-6.3, yBelt);
   skirtShape.lineTo(2.4, yBelt);
-  skirtShape.lineTo(2.4, 0.92);
+  skirtShape.lineTo(2.4, 0.88);
   skirtShape.splineThru([
-    new THREE.Vector2(1.4, 1.3),
-    new THREE.Vector2(-0.6, 1.48),
-    new THREE.Vector2(-2.6, 1.3),
-    new THREE.Vector2(-4.5, 0.66),
-    new THREE.Vector2(-5.7, 0.42),
-    new THREE.Vector2(-6.3, 0.66),
+    new THREE.Vector2(2.05, 1.15),
+    new THREE.Vector2(1.4, yBay),   // rear driver bay
+    new THREE.Vector2(0.4, yBay + 0.06),
+    new THREE.Vector2(-0.6, yBay + 0.08), // middle driver bay
+    new THREE.Vector2(-1.6, yBay + 0.06),
+    new THREE.Vector2(-2.6, yBay),  // lead driver bay
+    new THREE.Vector2(-3.5, 1.2),
+    new THREE.Vector2(-4.5, 0.62),
+    new THREE.Vector2(-5.7, 0.4),
+    new THREE.Vector2(-6.3, 0.62),
   ]);
   skirtShape.lineTo(-6.3, yBelt);
   const skirtGeo = new THREE.ExtrudeGeometry(skirtShape, {
-    depth: 0.06,
+    depth: 0.045,
     bevelEnabled: false,
   });
-  for (const zc of [1.1, -1.16]) {
+  for (const zc of [1.12, -1.165]) {
     const panel = new THREE.Mesh(skirtGeo, mats.shroudBlue);
     panel.position.z = zc;
     panel.castShadow = true;
     panel.receiveShadow = true;
     boilerShell.group.add(panel);
   }
-  // Dark motion/frame mass seen behind the driver cutouts
-  boilerShell.box(8.8, 0.9, 0.7, "dark", [-1.4, 0.95, 0]);
+  // Motion/frame mass behind driver cutouts — kept lighter + shorter so wheels read
+  boilerShell.box(7.6, 0.55, 0.55, "iron", [-0.6, 0.72, 0]);
   // Beltline crease highlight where the round top meets the flat side
   for (const s of [-1, 1] as const) {
     boilerShell.box(8.7, 0.03, 0.03, "dark", [-1.4, yBelt, s * 1.17]);
   }
 
-  // Primary name on loco side (boiler shell) — not only tender
+  // Primary name on loco side — centered on mid-barrel so full COMMODORE reads
   boilerShell.text("COMMODORE VANDERBILT", {
-    width: 4.6,
-    height: 0.3,
-    at: [-1.3, 1.72, 1.17],
-    color: "#e8e2d6",
-    font: "600 44px 'IBM Plex Sans', sans-serif",
+    width: 3.8,
+    height: 0.26,
+    at: [0.15, 1.72, 1.18],
+    color: "#f2eee6",
+    font: "700 34px 'IBM Plex Sans', sans-serif",
   });
   // Mirror lettering on −Z side
   const nameL = boilerShell.group.children[boilerShell.group.children.length - 1];
   boilerShell.text("COMMODORE VANDERBILT", {
-    width: 4.6,
-    height: 0.3,
-    at: [-1.3, 1.72, -1.17],
-    color: "#e8e2d6",
-    font: "600 44px 'IBM Plex Sans', sans-serif",
+    width: 3.8,
+    height: 0.26,
+    at: [0.15, 1.72, -1.18],
+    color: "#f2eee6",
+    font: "700 34px 'IBM Plex Sans', sans-serif",
   });
   const nameR = boilerShell.group.children[boilerShell.group.children.length - 1];
   nameR.rotation.y = pi;
@@ -159,45 +165,45 @@ export function buildVanderbilt(): LocoBuilt {
   const chassisDrivers = new THREE.Group();
   chassisDrivers.name = "chassis_drivers";
 
-  // Leading truck — 2 axles (pilot wheels)
+  // Leading truck — 2 axles (pilot wheels), both sides
   const leadR = 0.42;
   for (const x of [-5.4, -4.5]) {
-    const truck = buildSolidDisc(leadR, mats, false);
-    truck.position.set(x, leadR, 0);
-    chassisDrivers.add(truck);
-    wheels.push({ group: truck, radius: leadR });
+    for (const s of [-1, 1] as const) {
+      const truck = buildSolidDisc(leadR, mats, false);
+      truck.position.set(x, leadR, s * 0.75);
+      chassisDrivers.add(truck);
+      wheels.push({ group: truck, radius: leadR });
+    }
   }
 
-  // 3 driver axles — solid discs + counterweights
+  // 3 driver axles — open-spoke discs both sides, sitting in skirt cutouts
   const driverXs = [-2.6, -0.6, 1.4];
+  const driverZ = 0.98; // flush to skirt cutouts so faces read at default camera
   for (const x of driverXs) {
-    const d = buildSolidDisc(VANDY_DRIVER_R, mats, true);
-    d.position.set(x, VANDY_DRIVER_R * 0.55, 0); // recessed under shroud
-    // Scale Y so they peek from skirt cutouts
-    chassisDrivers.add(d);
-    wheels.push({ group: d, radius: VANDY_DRIVER_R });
-  }
-  // Lift drivers so flange sits on rail (~ rail height)
-  // Actually position.y should be radius for rail contact; shroud skirts cover upper half.
-  for (let i = 0; i < driverXs.length; i++) {
-    const d = chassisDrivers.children[2 + i];
-    d.position.y = VANDY_DRIVER_R;
+    for (const s of [-1, 1] as const) {
+      const d = buildSolidDisc(VANDY_DRIVER_R, mats, true);
+      d.position.set(x, VANDY_DRIVER_R, s * driverZ);
+      chassisDrivers.add(d);
+      wheels.push({ group: d, radius: VANDY_DRIVER_R });
+    }
   }
 
-  // Trailing truck — 2 axles
+  // Trailing truck — 2 axles, both sides
   const trailR = 0.48;
   for (const x of [3.6, 4.5]) {
-    const truck = buildSolidDisc(trailR, mats, false);
-    truck.position.set(x, trailR, 0);
-    chassisDrivers.add(truck);
-    wheels.push({ group: truck, radius: trailR });
+    for (const s of [-1, 1] as const) {
+      const truck = buildSolidDisc(trailR, mats, false);
+      truck.position.set(x, trailR, s * 0.75);
+      chassisDrivers.add(truck);
+      wheels.push({ group: truck, radius: trailR });
+    }
   }
 
   // Running gear — cylinders, main + coupling rods, crankpins (both sides)
   const gear = new Part("vandy/gear", mats);
   const pinY = 1.05;
   for (const s of [-1, 1] as const) {
-    const zc = s * 0.22;
+    const zc = s * 0.95;
     // coupling rod spanning the three drivers
     gear.box(4.3, 0.16, 0.05, "steel", [-0.6, pinY, zc]);
     // main rod slanting from crosshead to the lead driver pin
@@ -331,7 +337,7 @@ function buildSolidDisc(
       ],
       32,
     ),
-    mats.dark,
+    mats.iron,
   );
   disc.rotation.x = pi / 2;
   disc.castShadow = true;
@@ -342,7 +348,7 @@ function buildSolidDisc(
   for (let i = 0; i < spokeN; i++) {
     const a = (i / spokeN) * pi * 2;
     const spoke = new THREE.Mesh(
-      new THREE.BoxGeometry(r * 0.82, 0.05, 0.06),
+      new THREE.BoxGeometry(r * 0.82, 0.07, 0.08),
       mats.steel,
     );
     spoke.position.set(Math.cos(a) * r * 0.44, Math.sin(a) * r * 0.44, 0);
@@ -361,9 +367,9 @@ function buildSolidDisc(
   g.add(hub);
 
   if (withCounterweight) {
-    // Counterweight crescent filling several spoke bays
+    // Smaller counterweight — leave open spoke bays readable in skirt cutouts
     const cw = new THREE.Mesh(
-      new THREE.CylinderGeometry(r * 0.82, r * 0.82, 0.07, 24, 1, false, -0.9, 1.8),
+      new THREE.CylinderGeometry(r * 0.75, r * 0.75, 0.06, 24, 1, false, -0.55, 1.1),
       mats.iron,
     );
     cw.rotation.x = pi / 2;

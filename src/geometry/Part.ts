@@ -178,13 +178,27 @@ export class Part {
       ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
     ctx.fillStyle = color;
-    ctx.font = font;
     ctx.textAlign = align;
     ctx.textBaseline = "middle";
     const lines = content.split("\n");
     const lineH = canvas.height / (lines.length + 0.5);
+    // Fit each line inside the canvas with side padding so leading glyphs (e.g. C in COMMODORE) never clip
+    const pad = 28;
+    const maxW = canvas.width - pad * 2;
     lines.forEach((line, i) => {
-      const x = align === "left" ? 24 : canvas.width / 2;
+      let useFont = font;
+      ctx.font = useFont;
+      let metrics = ctx.measureText(line);
+      if (metrics.width > maxW) {
+        const m = /([\d.]+)px/.exec(font);
+        if (m) {
+          const px = parseFloat(m[1]);
+          const scaled = Math.max(10, Math.floor(px * (maxW / metrics.width)));
+          useFont = font.replace(/[\d.]+px/, `${scaled}px`);
+          ctx.font = useFont;
+        }
+      }
+      const x = align === "left" ? pad : canvas.width / 2;
       ctx.fillText(line, x, lineH * (i + 0.75));
     });
     const tex = new THREE.CanvasTexture(canvas);

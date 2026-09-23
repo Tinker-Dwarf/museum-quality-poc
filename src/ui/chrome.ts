@@ -12,7 +12,7 @@ export function renderShell(root: HTMLElement): HTMLElement {
             <span class="chip-ico">${explodeArrows}</span>
             <span id="explode-label">Explode</span>
           </button>
-          <button type="button" id="steam-btn" class="chip-btn" aria-pressed="true" title="Steam">
+          <button type="button" id="steam-btn" class="chip-btn" aria-pressed="false" title="Steam">
             <span class="chip-ico">${steamWaves}</span>
             <span>Steam</span>
           </button>
@@ -31,7 +31,7 @@ export function renderShell(root: HTMLElement): HTMLElement {
 
 export function wireChrome(root: HTMLElement, studio: StudioApi): void {
   let explodeOn = false;
-  let steamOn = true;
+  let steamOn = false;
   let labelsOn = true;
 
   const explodeBtn = root.querySelector<HTMLButtonElement>("#explode-btn")!;
@@ -65,7 +65,7 @@ export function wireChrome(root: HTMLElement, studio: StudioApi): void {
     studio.setView("both");
   });
 
-  studio.setSteam(true);
-  steamBtn.classList.add("active");
+  studio.setSteam(false);
+  steamBtn.classList.remove("active");
   labelsBtn.classList.add("active");
 }

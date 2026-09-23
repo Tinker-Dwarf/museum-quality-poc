@@ -535,23 +535,26 @@ export function buildOuray(): LocoBuilt {
   }
   register("cab", cab.group, [0.6, 1.2, 0]);
 
-  // —— Drivers (open-spoke) ——
+  // —— Drivers (open-spoke), both sides so faces clear running boards at default camera ——
   const drivers = new THREE.Group();
   drivers.name = "drivers";
   const driverXs = [-1.85, -0.55, 0.75, 2.05];
+  const driverZ = 0.82;
   for (const x of driverXs) {
-    const axle = buildOpenSpokeDriver(OURAY_DRIVER_R, mats);
-    axle.position.set(x, OURAY_DRIVER_R, 0);
-    drivers.add(axle);
-    wheels.push({ group: axle, radius: OURAY_DRIVER_R });
+    for (const s of [-1, 1] as const) {
+      const axle = buildOpenSpokeDriver(OURAY_DRIVER_R, mats);
+      axle.position.set(x, OURAY_DRIVER_R, s * driverZ);
+      drivers.add(axle);
+      wheels.push({ group: axle, radius: OURAY_DRIVER_R });
+    }
   }
   // Coupling rods + main rods + crankpins
   const rod = new Part("ouray/rods", mats);
   const pin = OURAY_DRIVER_R + 0.34;
   for (const s of [-1, 1] as const) {
-    const zc = s * 0.62;
+    const zc = s * 0.88;
     // Coupling rod with thickened big ends
-    rod.box(4.0, 0.09, 0.045, "steel", [0.1, pin, zc]);
+    rod.box(4.0, 0.11, 0.055, "steel", [0.1, pin, zc]);
     for (const dx of driverXs) {
       rod.box(0.22, 0.14, 0.06, "iron", [dx, pin, zc]);
     }
@@ -578,24 +581,23 @@ export function buildOuray(): LocoBuilt {
   drivers.add(rod.group);
   register("drivers", drivers, [0, -0.9, 0]);
 
-  // Leading pony truck (2-8-0 hint — single axle stub)
-  const pony = new Part("ouray/pony", mats);
+  // Leading pony truck — high-contrast open-spoke wheels vs pedestal/cream
+  const ponyGrp = new THREE.Group();
+  ponyGrp.name = "ouray/pony";
   const pr = 0.28;
-  // Truck frame
-  pony.box(0.7, 0.08, 0.85, "iron", [-3.15, 0.22, 0]);
-  pony.box(0.5, 0.1, 0.12, "steel", [-3.15, 0.35, 0]);
-  for (const s of [-1, 1] as const) {
-    pony.cylinder(pr, pr, 0.1, "dark", [-3.15, pr, s * 0.45], 18);
-    const w = pony.group.children[pony.group.children.length - 1];
-    w.rotation.x = pi / 2;
-    // Hub
-    const hub = pony.cylinder(pr * 0.25, pr * 0.25, 0.12, "steel", [-3.15, pr, s * 0.45], 10);
-    hub.rotation.x = pi / 2;
-  }
-  // Axle
-  const ponyAxle = pony.cylinder(0.04, 0.04, 1.0, "steel", [-3.15, pr, 0], 8);
+  const ponyFrame = new Part("ouray/pony_frame", mats);
+  ponyFrame.box(0.7, 0.08, 0.85, "iron", [-3.15, 0.22, 0]);
+  ponyFrame.box(0.5, 0.1, 0.12, "steel", [-3.15, 0.35, 0]);
+  const ponyAxle = ponyFrame.cylinder(0.04, 0.04, 1.0, "steel", [-3.15, pr, 0], 8);
   ponyAxle.rotation.x = pi / 2;
-  pony.finish(root);
+  ponyGrp.add(ponyFrame.group);
+  for (const s of [-1, 1] as const) {
+    const pw = buildOpenSpokeDriver(pr, mats);
+    pw.position.set(-3.15, pr, s * 0.45);
+    ponyGrp.add(pw);
+    wheels.push({ group: pw, radius: pr });
+  }
+  root.add(ponyGrp);
 
   // —— Tender ——
   const tender = new Part("ouray/tender", mats);
@@ -643,7 +645,7 @@ export function buildOuray(): LocoBuilt {
   for (const x of [3.85, 5.15]) {
     tender.box(0.55, 0.08, 0.95, "iron", [x, 0.18, 0]);
     for (const s of [-1, 1] as const) {
-      tender.cylinder(0.28, 0.28, 0.1, "dark", [x, 0.28, s * 0.5], 16);
+      tender.cylinder(0.28, 0.28, 0.1, "iron", [x, 0.28, s * 0.5], 16);
       const w = tender.group.children[tender.group.children.length - 1];
       w.rotation.x = pi / 2;
       const hub = tender.cylinder(0.07, 0.07, 0.12, "steel", [x, 0.28, s * 0.5], 8);
@@ -717,7 +719,7 @@ function buildOpenSpokeDriver(
       ],
       32,
     ),
-    mats.dark,
+    mats.iron,
   );
   tire.rotation.x = pi / 2;
   tire.castShadow = true;
@@ -743,12 +745,12 @@ function buildOpenSpokeDriver(
     g.add(ax);
   }
 
-  // Open spokes
+  // Open spokes — slightly thicker for high-contrast read vs pedestal/cream
   const spokeN = 14;
   for (let i = 0; i < spokeN; i++) {
     const a = (i / spokeN) * pi * 2;
     const spoke = new THREE.Mesh(
-      new THREE.BoxGeometry(r * 0.76, 0.032, 0.04),
+      new THREE.BoxGeometry(r * 0.76, 0.06, 0.07),
       mats.steel,
     );
     spoke.position.set(Math.cos(a) * r * 0.42, Math.sin(a) * r * 0.42, 0);
@@ -757,17 +759,17 @@ function buildOpenSpokeDriver(
     g.add(spoke);
   }
 
-  // Crescent counterweight filling spoke bays
+  // Small crescent counterweight — keep most spoke bays open for default-camera read
   const cw = new THREE.Mesh(
     new THREE.CylinderGeometry(
-      r * 0.78,
-      r * 0.78,
-      0.06,
+      r * 0.72,
+      r * 0.72,
+      0.05,
       28,
       1,
       false,
-      -0.85,
-      1.7,
+      -0.55,
+      1.1,
     ),
     mats.iron,
   );

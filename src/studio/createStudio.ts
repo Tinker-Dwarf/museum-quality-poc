@@ -43,7 +43,7 @@ export function createStudio(opts: StudioOptions): StudioApi {
   let rolling = false;
   let rollSpeed = mphToMs(12); // default ~12 mph
   let rollDistance = 0;
-  let steamOn = true;
+  let steamOn = false;
   let explodeT = 0;
 
   const scene = new THREE.Scene();
@@ -55,7 +55,7 @@ export function createStudio(opts: StudioOptions): StudioApi {
     0.05,
     200,
   );
-  camera.position.set(-8.2, 11.4, 13.8);
+  camera.position.set(-7.6, 8.8, 14.2);
 
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -63,7 +63,7 @@ export function createStudio(opts: StudioOptions): StudioApi {
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.toneMapping = THREE.NeutralToneMapping;
-  renderer.toneMappingExposure = 1.18;
+  renderer.toneMappingExposure = 1.35;
   mount.appendChild(renderer.domElement);
 
   const controls = new OrbitControls(camera, renderer.domElement);
@@ -72,14 +72,15 @@ export function createStudio(opts: StudioOptions): StudioApi {
   controls.target.set(0.55, 0.55, -0.1);
   controls.maxPolarAngle = Math.PI * 0.49;
 
-  scene.add(new THREE.AmbientLight(0xf4f1ea, 0.85));
-  scene.add(new THREE.HemisphereLight(0xfffaf2, 0xd7cfc0, 0.9));
-  const key = new THREE.DirectionalLight(0xfff6e8, 1.35);
+  scene.add(new THREE.AmbientLight(0xf4f1ea, 0.95));
+  scene.add(new THREE.HemisphereLight(0xfffaf2, 0xe4ddd0, 1.05));
+  const key = new THREE.DirectionalLight(0xfff6e8, 1.25);
   key.position.set(9, 18, 8);
   key.castShadow = true;
   key.shadow.mapSize.set(2048, 2048);
-  key.shadow.radius = 7;
-  key.shadow.bias = -0.0002;
+  key.shadow.radius = 8;
+  key.shadow.bias = -0.00015;
+  key.shadow.normalBias = 0.02;
   key.shadow.camera.near = 0.5;
   key.shadow.camera.far = 60;
   key.shadow.camera.left = -16;
@@ -88,14 +89,29 @@ export function createStudio(opts: StudioOptions): StudioApi {
   key.shadow.camera.bottom = -16;
   scene.add(key);
 
-  const fill = new THREE.DirectionalLight(0xeef0f4, 0.55);
-  fill.position.set(-8, 9, 6);
+  // Stronger camera-side fill so undercarriage iron/steel separates from cream void
+  const fill = new THREE.DirectionalLight(0xf2f4f8, 0.85);
+  fill.position.set(-8, 9, 10);
   scene.add(fill);
 
-  // Gentle rim from behind to separate slate shells from the cream field
-  const rim = new THREE.DirectionalLight(0xffffff, 0.35);
+  // Low bounce / undercarriage lift — kills value crush on tires, spokes, rods
+  const bounce = new THREE.DirectionalLight(0xfff8f0, 0.75);
+  bounce.position.set(2, 1.2, 8);
+  scene.add(bounce);
+  const underFill = new THREE.DirectionalLight(0xf0ebe3, 0.65);
+  underFill.position.set(-2, 0.6, 6);
+  scene.add(underFill);
+  const underFill2 = new THREE.DirectionalLight(0xffffff, 0.35);
+  underFill2.position.set(6, 2.0, 10);
+  scene.add(underFill2);
+
+  // Rim from behind + near-side kick for wheel faces in skirt cutouts
+  const rim = new THREE.DirectionalLight(0xffffff, 0.48);
   rim.position.set(-4, 6, -12);
   scene.add(rim);
+  const wheelKick = new THREE.DirectionalLight(0xfff5ea, 0.4);
+  wheelKick.position.set(4, 3.5, 14);
+  scene.add(wheelKick);
 
   // Cream museum void floor — pedestals sit on it; no long floor rails
   const groundMat = new THREE.MeshStandardMaterial({
@@ -157,9 +173,11 @@ export function createStudio(opts: StudioOptions): StudioApi {
   // Soft steam wisps (simple particle stubs from stacks)
   const steamOuray = makeSteamWisp();
   steamOuray.position.set(-2.55, 3.1, 0);
+  steamOuray.visible = false;
   ouray.root.add(steamOuray);
   const steamVandy = makeSteamWisp();
   steamVandy.position.set(-5.5, 3.0, 0);
+  steamVandy.visible = false;
   vanderbilt.root.add(steamVandy);
 
   function applyScale() {
@@ -194,7 +212,7 @@ export function createStudio(opts: StudioOptions): StudioApi {
       controls.target.set(vx + VANDY_TRACK_CX + 0.2, py + 1.25 * s, VANDY_Z);
     } else {
       // Museum three-quarter: higher, tighter on the pedestal pair
-      camera.position.set(-8.2, 11.4, 13.8);
+      camera.position.set(-7.6, 8.8, 14.2);
       controls.target.set(0.55, py + 0.35, -0.1);
     }
     controls.update();
@@ -343,7 +361,7 @@ function buildMuseumPedestal(opts: {
     new THREE.MeshBasicMaterial({
       color: 0x2a2824,
       transparent: true,
-      opacity: 0.12,
+      opacity: 0.08,
       depthWrite: false,
     }),
   );
@@ -354,7 +372,7 @@ function buildMuseumPedestal(opts: {
 
   const shadowCatch = new THREE.Mesh(
     new THREE.PlaneGeometry(opts.length * 0.98, opts.width * 0.95),
-    new THREE.ShadowMaterial({ opacity: 0.28 }),
+    new THREE.ShadowMaterial({ opacity: 0.18 }),
   );
   shadowCatch.rotation.x = -Math.PI / 2;
   shadowCatch.position.y = 0.006;
