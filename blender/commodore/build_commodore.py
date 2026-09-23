@@ -144,11 +144,11 @@ def build():
     face = cube("Face", (31.55, 0, 7.15), (1.9, 7.5, 11.2), shroud)
     bevel(face, 0.85, 5)
     parent(face, root)
-    crown = cylinder("Crown", (31.55, 0, 12.55), 0.95, 7.5, shroud, rot=(math.pi / 2, 0, 0), verts=28)
+    crown = cylinder("Crown", (31.55, 0, 12.65), 0.55, 7.4, shroud, rot=(math.pi / 2, 0, 0), verts=24)
     parent(crown, root)
     for s in (-1, 1):
-        cheek = cube(f"Cheek_{s}", (28.8, s * 3.55, 8.2), (5.2, 0.55, 7.2), shroud)
-        bevel(cheek, 0.22, 2)
+        cheek = cube(f"Cheek_{s}", (26.8, s * 3.70, 8.0), (8.8, 0.45, 8.0), shroud)
+        bevel(cheek, 0.20, 2)
         parent(cheek, root)
     bezel = cylinder("Bezel", (32.55, 0, 9.35), 0.95, 0.28, steel, verts=28)
     parent(bezel, root)
@@ -193,32 +193,36 @@ def build():
         parent(num, root)
 
     for s in (-1, 1):
-        walk = cube(f"Walk_{s}", (7.5, s * 4.20, 8.55), (29.0, 1.15, 0.20), shroud)
+        walk = cube(f"Walk_{s}", (9.0, s * 4.15, 8.55), (26.0, 1.05, 0.18), shroud)
         parent(walk, root)
-        cover = cube(f"SideCover_{s}", (8.0, s * 4.72, 6.35), (28.0, 0.14, 4.2), shroud)
+        cover = cube(f"SideCover_{s}", (8.5, s * 4.70, 6.70), (31.0, 0.14, 5.3), shroud)
         parent(cover, root)
-        rail = cube(f"WalkRail_{s}", (7.5, s * 4.80, 9.05), (29.0, 0.08, 0.10), steel)
+        rail = cube(f"WalkRail_{s}", (9.0, s * 4.78, 9.28), (26.0, 0.08, 0.10), steel)
         parent(rail, root)
-        for i in range(6):
-            t = i / 5.0
-            sx = 31.0 - t * 6.8
-            sz = 3.7 + t * 4.85
-            st = cube(f"NoseStep_{s}_{i}", (sx, s * 4.20, sz), (1.15, 1.05, 0.14), shroud)
+        for i in range(7):
+            t = i / 6.0
+            sx = 31.2 - t * 9.2
+            sz = 3.35 + t * 5.20
+            st = cube(f"NoseStep_{s}_{i}", (sx, s * 4.18, sz), (1.20, 1.00, 0.14), shroud)
             parent(st, root)
-        cabst = cube(f"CabStep_{s}", (-8.2, s * 4.20, 8.15), (1.3, 0.90, 0.16), shroud)
+        cabst = cube(f"CabStep_{s}", (-8.2, s * 4.15, 8.15), (1.3, 0.90, 0.16), shroud)
         parent(cabst, root)
 
     frame = cube("Frame", (8.0, 0, 3.4), (36.0, 2.2, 0.7), iron)
     parent(frame, root)
-    shovel = cube("Shovel", (30.8, 0, 2.85), (5.4, 6.2, 3.6), shroud)
+    shovel = cube("Shovel", (31.1, 0, 3.55), (4.6, 7.2, 5.4), shroud)
     bevel(shovel, 0.55, 4)
     parent(shovel, root)
-    point = cube("ShovelPoint", (32.4, 0, 1.85), (2.2, 4.4, 1.7), shroud)
-    bevel(point, 0.35, 3)
+    point = cube("ShovelPoint", (32.8, 0, 1.55), (2.4, 4.6, 2.0), shroud)
+    bevel(point, 0.40, 3)
     parent(point, root)
-    pilot = cube("PilotBeam", (33.4, 0, 1.35), (1.1, 6.4, 0.55), iron)
+    for s in (-1, 1):
+        wing = cube(f"PlowWing_{s}", (33.15, s * 1.55, 0.95), (2.2, 3.1, 1.15), shroud)
+        bevel(wing, 0.18, 2)
+        parent(wing, root)
+    pilot = cube("PilotBeam", (33.6, 0, 0.72), (1.0, 5.6, 0.40), iron)
     parent(pilot, root)
-    fcoup = cube("FrontCoupler", (34.1, 0, 1.25), (0.7, 0.35, 0.35), steel)
+    fcoup = cube("FrontCoupler", (34.2, 0, 0.70), (0.55, 0.28, 0.28), steel)
     parent(fcoup, root)
 
     axles = ([(x, LEAD_R) for x in LEAD] + [(x, DRIVE_R) for x in DRIVE] + [(TRAIL[0], TRAIL_F), (TRAIL[1], TRAIL_R)])
