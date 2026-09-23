@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Commodore Vanderbilt — Three.js</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #0b0d10; overflow: hidden; font-family: Georgia, serif; }
+    canvas { display: block; }
+    #hud {
+      position: absolute; left: 20px; bottom: 20px; color: #c9c4b8;
+      letter-spacing: 0.08em; font-size: 13px; text-shadow: 0 1px 8px #000;
+    }
+    #hud b { color: #e8e2d4; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div id="hud">
+    <b>NYC Commodore Vanderbilt</b><br />
+    4-6-4 Hudson streamliner · GLB from Blender
+  </div>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.169.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.169.0/examples/jsm/"
+    }
+  }
+  </script>
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0b0d10);
+    scene.fog = new THREE.Fog(0x0b0d10, 18, 48);
+
+    const camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 0.1, 200);
+    camera.position.set(10, 4.2, 8);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    document.body.appendChild(renderer.domElement);
+
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+
+    const hemi = new THREE.HemisphereLight(0xc9d6e8, 0x2a241c, 0.55);
+    scene.add(hemi);
+    const key = new THREE.DirectionalLight(0xfff3dd, 1.4);
+    key.position.set(8, 12, 6);
+    scene.add(key);
+    const rim = new THREE.DirectionalLight(0x88a0c8, 0.45);
+    rim.position.set(-6, 3, -8);
+    scene.add(rim);
+
+    const bed = new THREE.Mesh(
+      new THREE.BoxGeometry(40, 0.12, 3.2),
+      new THREE.MeshStandardMaterial({ color: 0x2a241c, roughness: 0.9 })
+    );
+    bed.position.y = -0.06;
+    scene.add(bed);
+    const railMat = new THREE.MeshStandardMaterial({ color: 0x6a6e72, metalness: 0.85, roughness: 0.25 });
+    for (const z of [-0.72, 0.72]) {
+      const rail = new THREE.Mesh(new THREE.BoxGeometry(40, 0.06, 0.08), railMat);
+      rail.position.set(0, 0.03, z);
+      scene.add(rail);
+    }
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.target.set(0, 1.2, 0);
+
+    const loader = new GLTFLoader();
+    loader.load(
+      './commodore.glb',
+      (gltf) => {
+        const train = gltf.scene;
+        train.traverse((c) => {
+          if (c.isMesh) {
+            c.castShadow = true;
+            c.receiveShadow = true;
+          }
+        });
+        scene.add(train);
+      },
+      undefined,
+      (err) => console.error('GLB load failed', err)
+    );
+
+    addEventListener('resize', () => {
+      camera.aspect = innerWidth / innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth, innerHeight);
+    });
+
+    (function tick() {
+      requestAnimationFrame(tick);
+      controls.update();
+      renderer.render(scene, camera);
+    })();
+  </script>
+</body>
+</html>

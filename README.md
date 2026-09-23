@@ -2,7 +2,7 @@
 
 Vite + TypeScript + Three.js museum face: **Ouray** (Silverton R.R. No. 102) and **Commodore Vanderbilt** (New York Central) on light pedestals with short track segments in a cream museum void.
 
-Procedural Part-style geometry only — **no GLB loader**.
+Procedural Part-style geometry only in `/src` — **no GLB loader** in the museum app.
 
 ## Prove commands
 
@@ -23,6 +23,16 @@ npm run capture      # writes artifacts/codie-p1/default-camera.png
 6. MeshStandardMaterial (solid lit), no flat foam
 7. Default camera: high three-quarter (still-matched)
 8. Evidence: `artifacts/codie-p1/default-camera.png` + `NOTE.md`
+
+## Blender sidecar (optional, not P1)
+
+Bot-authored Blender Python for a GLB Commodore lives in `blender/commodore/`.
+Does not replace the procedural museum models. See that folder README for export and preview.
+
+```bash
+cd blender/commodore
+blender --background --python build_commodore.py -- --out commodore.glb
+```
 
 ## License
 
