@@ -181,6 +181,11 @@ def build():
         parent(sl, root)
     stack = cylinder("StackWell", (20.5, 0, BOIL_Z + BOIL_R - 0.05), 0.55, 0.22, dark, rot=(0, 0, 0), verts=24)
     parent(stack, root)
+    for i, x in enumerate((28.6, 25.0, 21.4, 17.8, 14.2, 10.6, 7.0, 3.4, -0.2)):
+        band = cylinder(f"JacketBand_{i}", (x, 0, BOIL_Z), BOIL_R + 0.05, 0.16, dark, verts=36)
+        parent(band, root)
+    spine = cube("CowlSpine", (12.5, 0, BOIL_Z + BOIL_R + 0.04), (36.0, 0.22, 0.08), dark)
+    parent(spine, root)
 
     cab = cube("Cab", (-10.2, 0, 9.2), (8.4, 10.2, 10.4), shroud)
     bevel(cab, 0.35, 3)
