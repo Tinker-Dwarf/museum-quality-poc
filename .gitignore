@@ -4,3 +4,5 @@ dist
 *.local
 playwright-report
 test-results
+
+artifacts/lathe-p1/
