@@ -1,6 +1,6 @@
 """
 Commodore Vanderbilt — patent silhouette pass (US 2,108,203).
-Walkway on the barrel, open drivers, two triple tender trucks, soft rear.
+Kantola tender: covered coal, gangway curtain, car-style rear.
 Run:
   blender --background --python build_commodore.py -- --out commodore.glb
 """
@@ -189,46 +189,65 @@ def build():
     curtain = cube("Vestibule", (-5.15, 0, 1.45), (0.16, 1.85, 1.85), dark)
     parent(curtain, root)
     tender = cube("Tender", (-7.85, 0, 1.38), (5.10, 2.16, 2.12), shroud)
-    bevel(tender, 0.10, 3)
+    bevel(tender, 0.12, 4)
     parent(tender, root)
     for s in (-1, 1):
-        shoulder = cylinder(f"TenShoulder_{s}", (-7.85, s * 0.78, 2.38), 0.30, 5.10, shroud, verts=16)
+        shoulder = cylinder(f"TenShoulder_{s}", (-7.55, s * 0.78, 2.36), 0.26, 4.40, shroud, verts=16)
         parent(shoulder, root)
-    deck = cube("TenderDeck", (-7.85, 0, 2.52), (5.10, 1.58, 0.16), shroud)
+    deck = cube("TenderDeck", (-7.70, 0, 2.50), (4.70, 1.52, 0.14), shroud)
     parent(deck, root)
-    bunker = cube("Bunker", (-6.85, 0, 2.58), (2.55, 1.28, 0.22), dark)
-    parent(bunker, root)
-    coal = cube("Coal", (-6.85, 0, 2.48), (2.35, 1.10, 0.28), dark)
-    bevel(coal, 0.06, 2)
+    for i, ox in enumerate((-6.15, -6.65, -7.15, -7.65)):
+        panel = cube(f"CoalCover_{i}", (ox, 0, 2.60), (0.46, 1.18, 0.06), dark)
+        parent(panel, root)
+    coal = cube("Coal", (-6.90, 0, 2.46), (2.20, 1.05, 0.22), dark)
+    bevel(coal, 0.05, 2)
     parent(coal, root)
-    hatch = cube("WaterHatch", (-9.45, 0, 2.62), (0.85, 0.70, 0.10), dark)
+    hatch = cube("WaterHatch", (-9.35, 0, 2.58), (0.90, 0.72, 0.08), dark)
     parent(hatch, root)
-    fill = cylinder("FillCap", (-9.45, 0, 2.70), 0.16, 0.08, steel, rot=(0, 0, 0), verts=16)
+    hinge = cube("HatchHinge", (-8.95, 0, 2.62), (0.08, 0.72, 0.04), steel)
+    parent(hinge, root)
+    fill = cylinder("FillCap", (-9.45, 0, 2.66), 0.14, 0.07, steel, rot=(0, 0, 0), verts=16)
     parent(fill, root)
+    rear_chamfer = cube("RearChamfer", (-10.18, 0, 2.38), (0.42, 1.55, 0.18), shroud)
+    bevel(rear_chamfer, 0.12, 4)
+    parent(rear_chamfer, root)
+    backup = cube("BackupLight", (-10.42, 0.42, 2.05), (0.06, 0.16, 0.12), lamp)
+    parent(backup, root)
+    cap_stenc = cube("CapacityStencil", (-10.42, 0.15, 1.55), (0.03, 0.55, 0.22), dark)
+    parent(cap_stenc, root)
+    buffer = cube("BufferBeam", (-10.42, 0, 0.72), (0.16, 1.60, 0.32), iron)
+    parent(buffer, root)
     for s in (-1, 1):
-        letter = cube(f"TenderPanel_{s}", (-7.95, s * 1.09, 1.55), (3.2, 0.03, 0.28), dark)
+        step = cube(f"RearStep_{s}", (-10.48, s * 0.72, 0.48), (0.16, 0.22, 0.06), steel)
+        parent(step, root)
+        pocket = cube(f"Poling_{s}", (-10.42, s * 0.95, 1.05), (0.06, 0.12, 0.12), dark)
+        parent(pocket, root)
+    for z in (0.90, 1.28, 1.66, 2.04):
+        rung = cube(f"Ladder_{z}", (-10.46, -0.58, z), (0.035, 0.26, 0.03), steel)
+        parent(rung, root)
+    for yy in (-0.70, -0.46):
+        rail = cube(f"LadderRail_{yy}", (-10.46, yy, 1.52), (0.03, 0.03, 1.36), steel)
+        parent(rail, root)
+    grab = cube("RoofGrab", (-10.22, -0.58, 2.36), (0.28, 0.26, 0.03), steel)
+    parent(grab, root)
+    for s in (-1, 1):
+        letter = cube(f"TenderPanel_{s}", (-7.85, s * 1.09, 1.62), (2.6, 0.025, 0.22), cream)
         parent(letter, root)
-        belt = cube(f"TenBelt_{s}", (-7.85, s * 1.09, 0.72), (4.8, 0.03, 0.06), dark)
-        parent(belt, root)
+        for zi, z in enumerate((0.55, 0.95, 2.15)):
+            riv = cube(f"Rivet_{s}_{zi}", (-7.85, s * 1.09, z), (4.7, 0.02, 0.025), dark)
+            parent(riv, root)
+        for gx in (-6.15, -7.35, -8.55, -9.55):
+            ir = cube(f"Grab_{s}_{gx}", (gx, s * 1.10, 1.95), (0.22, 0.03, 0.03), steel)
+            parent(ir, root)
+        rail = cube(f"SideRail_{s}", (-7.85, s * 1.11, 2.22), (4.4, 0.025, 0.025), steel)
+        parent(rail, root)
         for cx in (-6.40, -9.25):
             sf = cube(f"TenFrame_{s}_{cx}", (cx, s * 0.92, 0.36), (1.70, 0.08, 0.20), iron)
             parent(sf, root)
-    rear_slope = cube("TenderRearSlope", (-10.22, 0, 2.42), (0.50, 1.65, 0.22), shroud)
-    bevel(rear_slope, 0.10, 3)
-    parent(rear_slope, root)
-    for s in (-1, 1):
-        fillet = cylinder(f"RearFillet_{s}", (-10.30, s * 0.82, 2.32), 0.18, 0.42, shroud, verts=16)
-        parent(fillet, root)
-    buffer = cube("BufferBeam", (-10.42, 0, 0.78), (0.18, 1.55, 0.28), iron)
-    parent(buffer, root)
-    for z in (0.95, 1.35, 1.75, 2.15):
-        rung = cube(f"Ladder_{z}", (-10.45, -0.55, z), (0.04, 0.28, 0.035), steel)
-        parent(rung, root)
-    for yy in (-0.68, -0.42):
-        rail = cube(f"LadderRail_{yy}", (-10.45, yy, 1.55), (0.035, 0.035, 1.40), steel)
-        parent(rail, root)
-    grab = cube("RoofGrab", (-10.28, -0.55, 2.38), (0.22, 0.28, 0.035), steel)
-    parent(grab, root)
+            bar = cube(f"Equalizer_{s}_{cx}", (cx, s * 0.92, 0.50), (1.50, 0.04, 0.05), steel)
+            parent(bar, root)
+        fst = cube(f"FrontStep_{s}", (-5.38, s * 1.12, 0.55), (0.22, 0.18, 0.05), steel)
+        parent(fst, root)
 
     lead_r, drive_r, trail_r, ten_r = 0.38, 0.78, 0.42, 0.26
     for x in (3.55, 2.75):
